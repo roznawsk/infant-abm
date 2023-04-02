@@ -1,7 +1,7 @@
 import mesa
 
-from wolf_sheep.agents import Toddler, LegoBrick
-from wolf_sheep.model import ToddlerABM
+from toddler_abm.agents import Toddler, LegoBrick
+from toddler_abm.model import ToddlerABM
 
 
 def toddler_abm_portrayal(agent):

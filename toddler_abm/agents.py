@@ -1,12 +1,10 @@
 import mesa
-from wolf_sheep.random_walk import RandomWalker
+from toddler_abm.random_walk import RandomWalker
 
 
 class Toddler(RandomWalker):
     """
-    A sheep that walks around, reproduces (asexually) and gets eaten.
-
-    The init is the same as the RandomWalker.
+    Toddler
     """
 
     energy = None
@@ -14,6 +12,7 @@ class Toddler(RandomWalker):
     def __init__(self, unique_id, pos, model, moore):
         super().__init__(unique_id, pos, model, moore=moore)
         self.brick = None
+        self.
 
     def step(self):
         """

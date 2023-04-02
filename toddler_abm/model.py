@@ -12,8 +12,8 @@ Replication of the model found in NetLogo:
 import mesa
 import random
 
-from wolf_sheep.scheduler import RandomActivationByTypeFiltered
-from wolf_sheep.agents import Toddler, LegoBrick
+from toddler_abm.scheduler import RandomActivationByTypeFiltered
+from toddler_abm.agents import Toddler, LegoBrick
 
 
 class ToddlerABM(mesa.Model):

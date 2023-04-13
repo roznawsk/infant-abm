@@ -1,3 +1,3 @@
-from wolf_sheep.server import server
+from toddler_abm.server import server
 
 server.launch()

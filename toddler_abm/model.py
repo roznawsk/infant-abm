@@ -21,13 +21,6 @@ class ToddlerABM(mesa.Model):
     Wolf-Sheep Predation Model
     """
 
-    height = 10
-    width = 10
-
-    initial_bricks = 10
-
-    drops_brick = 0.1
-
     verbose = False  # Print-monitoring
 
     description = (
@@ -36,9 +29,9 @@ class ToddlerABM(mesa.Model):
 
     def __init__(
         self,
-        width=10,
-        height=10,
-        initial_bricks=10,
+        width=15,
+        height=15,
+        initial_bricks=4,
         drops_brick=10,
     ):
         """

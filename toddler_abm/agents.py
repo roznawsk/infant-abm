@@ -12,7 +12,7 @@ class Toddler(RandomWalker):
     def __init__(self, unique_id, pos, model, moore):
         super().__init__(unique_id, pos, model, moore=moore)
         self.brick = None
-        self.
+        # self.
 
     def step(self):
         """

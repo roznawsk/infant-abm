@@ -70,10 +70,10 @@ class Toy(mesa.Agent):
     def _deactivated_color(self):
         color_rgb = self.color_activated.lstrip('#')
         color_rgb = tuple(int(color_rgb[i:i+2], 16) for i in [0, 2, 4])
-        color_rgb = tuple(c + 119 for c in color_rgb)
+        color_rgb = tuple(c + 88 for c in color_rgb)
 
         return '#' + ('%02x%02x%02x' % color_rgb)
 
     def _random_color(self):
-        return "#"+''.join([random.choice('34567')
+        return "#"+''.join([random.choice('345')
                             for j in range(6)])

@@ -77,11 +77,16 @@ const Simple_Continuous_Module = function(canvas_width, canvas_height) {
 	// Create the element
 	// ------------------
 
+	// background - image: url("https://m.media-amazon.com/images/I/91dEOYkZhzL._AC_UF894,1000_QL80_.jpg"); \
+
   const canvas = document.createElement("canvas");
   Object.assign(canvas, {
     width: canvas_width,
     height: canvas_height,
-    style: 'border:1px dotted'
+	  style: 'border:1px dotted; \
+		background-image: url("local/custom/boid_flockers/resources/roadmap.png"); \
+		background-repeat: no-repeat; \
+		background-size: cover;'
   });
 	// Append it to body:
   document.getElementById("elements").appendChild(canvas);

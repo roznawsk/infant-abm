@@ -9,7 +9,7 @@ from .agents.toy import Toy
 def portrayal(agent):
     if type(agent) is Toddler:
 
-        return {'Shape': 'boid_flockers/resources/toddler.png', 'Layer': 1, 'w': 50, 'h': 50}
+        return {'Shape': 'boid_flockers/resources/toddler_2.png', 'Layer': 1, 'w': 50, 'h': 50}
 
     elif type(agent) is Toy:
         return {'Shape': 'rect', 'w': 0.025, 'h': 0.025, 'Layer': 2, 'Color': agent.color, 'Filled': 'true'}

@@ -12,21 +12,14 @@ Replication of the model found in NetLogo:
 import mesa
 import random
 
-from wolf_sheep.scheduler import RandomActivationByTypeFiltered
-from wolf_sheep.agents import Toddler, LegoBrick
+from toddler_abm.scheduler import RandomActivationByTypeFiltered
+from toddler_abm.agents import Toddler, LegoBrick
 
 
 class ToddlerABM(mesa.Model):
     """
     Wolf-Sheep Predation Model
     """
-
-    height = 10
-    width = 10
-
-    initial_bricks = 10
-
-    drops_brick = 0.1
 
     verbose = False  # Print-monitoring
 
@@ -36,9 +29,9 @@ class ToddlerABM(mesa.Model):
 
     def __init__(
         self,
-        width=10,
-        height=10,
-        initial_bricks=10,
+        width=15,
+        height=15,
+        initial_bricks=4,
         drops_brick=10,
     ):
         """

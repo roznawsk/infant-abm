@@ -1,8 +1,9 @@
 import mesa
 
-from .model import BoidFlockers
+from .model import ToddlerModel
 from .SimpleContinuousModule import SimpleCanvas
-from .agents import Toddler, Toy
+from .agents.toddler import Toddler
+from .agents.toy import Toy
 
 
 def portrayal(agent):
@@ -21,17 +22,18 @@ def portrayal(agent):
         return {'Shape': 'rect', 'w': 0.025, 'h': 0.025, 'Layer': 2, 'Color': agent.color, 'Filled': 'true'}
 
 
-boid_canvas = SimpleCanvas(portrayal, 900, 900)
+model_canvas = SimpleCanvas(portrayal, 900, 900)
 model_params = {
     "title": mesa.visualization.StaticText("Grid size: 300"),
-    "population": 8,
+    "lego_count": 8,
     "width": 300,
     "height": 300,
     "speed": 2,
-    "vision": mesa.visualization.Slider("Vision", 70, 1, 100),
-    "persistence": mesa.visualization.Slider("Persistence", 95, 0, 100)
+    "precision": mesa.visualization.Slider("Precision", 50, 0, 100),
+    "perception": mesa.visualization.Slider("Perception", 50, 0, 100),
+    "coordination": mesa.visualization.Slider("Coordination", 50, 0, 100)
 }
 
 server = mesa.visualization.ModularServer(
-    BoidFlockers, [boid_canvas], "Boids", model_params
+    ToddlerModel, [model_canvas], "Boids", model_params
 )

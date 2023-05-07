@@ -107,19 +107,19 @@ class Toddler(mesa.Agent):
         y = np.random.random() * self.model.space.y_max
         pos = np.array((x, y))
 
-        toys_in_neighbourhood.append(
-            Toy(model=self.model, unique_id=uuid.uuid4(), pos=pos)
-        )
+        # toys_in_neighbourhood.append(
+        #     Toy(model=self.model, unique_id=uuid.uuid4(), pos=pos)
+        # )
 
-        toys_in_neighbourhood[-1].times_interacted_with = max(
-            [agent.times_interacted_with for agent in self.model.schedule.agents if type(agent) == Toy])
+        # toys_in_neighbourhood[-1].times_interacted_with = max(
+        #     [agent.times_interacted_with for agent in self.model.schedule.agents if type(agent) == Toy])
 
         probabilities = np.array(
             [1 / (toy.times_interacted_with + 1) for toy in toys_in_neighbourhood])
 
         probabilities = probabilities / probabilities.sum()
 
-        if toys_in_neighbourhood and np.random.random() > self.model.precision:
+        if toys_in_neighbourhood and np.random.random() > (1 - self.model.precision):
             [target] = np.random.choice(
                 toys_in_neighbourhood, size=1, p=probabilities)
             self.velocity = calc_velocity(self.pos, target.pos)
@@ -154,35 +154,3 @@ def calc_velocity(p1, p2):
     velocity = [p2[0] - p1[0], p2[1] - p1[1]]
 
     return velocity / np.linalg.norm(velocity)
-
-    # def step(self):
-    #     """
-    #     A model step. Move, then eat grass and reproduce.
-    #     """
-    #     self.random_move()
-
-    #     # If there is grass available, eat it
-    #     this_cell = self.model.grid.get_cell_list_contents([self.pos])
-    #     lego_brick = [obj for obj in this_cell if isinstance(obj, LegoBrick)]
-
-    #     if self.brick is None and lego_brick:
-    #         lego_brick = lego_brick[0]
-
-    #         print(f'removing agent {lego_brick}')
-    #         self.model.grid.remove_agent(lego_brick)
-    #         self.brick = lego_brick
-
-    #         # self.energy += self.model.sheep_gain_from_food
-    #         # grass_patch.fully_grown = False
-
-    #     elif self.brick and self.random.random() < self.model.drops_brick:
-    #         # Create a new sheep:
-    #         # if self.model.grass:
-    #         #     self.energy /= 2
-
-    #         # lamb = Sheep(
-    #         #     self.model.next_id(), self.pos, self.model, self.moore, self.energy
-    #         # )
-    #         self.brick.pos = self.pos
-    #         self.model.grid.place_agent(self.brick, self.pos)
-    #         self.brick = None

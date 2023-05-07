@@ -8,13 +8,6 @@ from .agents.toy import Toy
 
 def portrayal(agent):
     if type(agent) is Toddler:
-        # portrayal["Shape"] = "boid_flockers/resources/toddler.png"
-        # portrayal["Shape"] = "circle"
-        # portrayal["Color"] = "red"
-
-        # # https://icons8.com/web-app/433/sheep
-        # portrayal["scale"] = 0.8
-        # portrayal["Layer"] = 1
 
         return {'Shape': 'boid_flockers/resources/toddler.png', 'Layer': 1, 'w': 50, 'h': 50}
 
@@ -23,6 +16,13 @@ def portrayal(agent):
 
 
 model_canvas = SimpleCanvas(portrayal, 900, 900)
+
+chart_element = mesa.visualization.ChartModule(
+    [
+        {"Label": "Steps/Interaction", "Color": "#AA0000"},
+    ]
+)
+
 model_params = {
     "title": mesa.visualization.StaticText("Grid size: 300"),
     "lego_count": 8,
@@ -35,5 +35,5 @@ model_params = {
 }
 
 server = mesa.visualization.ModularServer(
-    ToddlerModel, [model_canvas], "Boids", model_params
+    ToddlerModel, [model_canvas, chart_element], "Boids", model_params
 )

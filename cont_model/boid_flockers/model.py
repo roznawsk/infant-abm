@@ -42,6 +42,13 @@ class ToddlerModel(mesa.Model):
 
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
+
+        self.datacollector = mesa.DataCollector(
+            {
+                "Steps/Interaction": get_steps
+            }
+        )
+
         self.make_agents()
         self.running = True
 
@@ -71,3 +78,11 @@ class ToddlerModel(mesa.Model):
 
     def step(self):
         self.schedule.step()
+        self.datacollector.collect(self)
+
+
+def get_steps(m):
+    ksteps = m.schedule.steps / (sum([a.times_interacted_with for a in m.schedule.agents if type(
+        a) == Toy]) + 1)
+
+    return ksteps

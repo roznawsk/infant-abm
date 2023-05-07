@@ -3,10 +3,11 @@ const ContinuousVisualization = function(width, height, context) {
 		for (const p of objects) {
 			if (p.Shape == "rect")
 				this.drawRectange(p.x, p.y, p.w, p.h, p.Color, p.Filled);
-			if (p.Shape == "circle")
+			else if (p.Shape == "circle")
 				this.drawCircle(p.x, p.y, p.r, p.Color, p.Filled);
+			else 
+				this.drawCustomImage(p.Shape, p.x, p.y, p.w, p.h);
 		};
-
 	};
 
 	this.drawCircle = function(x, y, radius, color, fill) {
@@ -43,6 +44,27 @@ const ContinuousVisualization = function(width, height, context) {
 			context.fillRect(x0, y0, dx, dy);
 		else
 			context.strokeRect(x0, y0, dx, dy);
+	};
+
+	this.drawCustomImage = function (shape, x, y, w, h, text, text_color_) {
+		const img = new Image();
+		img.src = "local/custom/".concat(shape);
+
+		// Calculate coordinates so the image is always centered
+		const cx = x * width - w / 2;
+		const cy = y * height - h / 2;
+
+		img.onload = function () {
+			context.drawImage(img, cx, cy, w, h);
+			// This part draws the text on the image
+			if (text !== undefined) {
+				// ToDo: Fix fillStyle
+				// context.fillStyle = text_color;
+				context.textAlign = "center";
+				context.textBaseline = "middle";
+				context.fillText(text, tx, ty);
+			}
+		};
 	};
 
 	this.resetCanvas = function() {

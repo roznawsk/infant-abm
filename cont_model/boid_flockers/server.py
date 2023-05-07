@@ -7,7 +7,7 @@ from .agents import Toddler, Toy
 
 def portrayal(agent):
     if type(agent) is Toddler:
-        # portrayal["Shape"] = "./resources/toddler.png"
+        # portrayal["Shape"] = "boid_flockers/resources/toddler.png"
         # portrayal["Shape"] = "circle"
         # portrayal["Color"] = "red"
 
@@ -15,10 +15,10 @@ def portrayal(agent):
         # portrayal["scale"] = 0.8
         # portrayal["Layer"] = 1
 
-        return {'Shape': 'circle', 'Layer': 1, 'Color': 'grey', 'Filled': 'true', 'r': 16}
+        return {'Shape': 'boid_flockers/resources/toddler.png', 'Layer': 1, 'w': 50, 'h': 50}
 
     elif type(agent) is Toy:
-        return {'Shape': 'rect', 'w': 0.025, 'h': 0.025, 'Layer': 1, 'Color': agent.color, 'Filled': 'true'}
+        return {'Shape': 'rect', 'w': 0.025, 'h': 0.025, 'Layer': 2, 'Color': agent.color, 'Filled': 'true'}
 
 
 boid_canvas = SimpleCanvas(portrayal, 900, 900)

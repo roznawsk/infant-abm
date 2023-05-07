@@ -8,7 +8,7 @@ from mesa.space import MultiGrid
 from mesa.time import RandomActivation
 from mesa.visualization.TextVisualization import TextVisualization, TextGrid
 
-from wolf_sheep.random_walk import RandomWalker
+from toddler_abm.random_walk import RandomWalker
 
 
 class WalkerAgent(RandomWalker):

@@ -1,5 +1,25 @@
 # Toddler behaviour using agent based modelling
 
+## Installation and running
+
+Clone the repo:
+```
+git clone https://github.com/roznawsk/toddler-abm
+cd toddler-abm
+```
+
+Go to the continous space simulation:
+```
+cd cont_model
+```
+
+Run mesa server:
+```
+mesa runserver
+```
+
+A browser window with the simulation should open automatically.
+
 ## Toddler rules/ traits
 
 

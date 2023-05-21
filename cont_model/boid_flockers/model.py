@@ -78,6 +78,7 @@ class ToddlerModel(mesa.Model):
             pos=pos,
             speed=self.parent_speed
         )
+        self.parent = parent
 
         x = self.random.random() * self.space.x_max
         y = self.random.random() * self.space.y_max
@@ -92,8 +93,7 @@ class ToddlerModel(mesa.Model):
             model=self,
             unique_id=self.lego_count,
             pos=pos,
-            speed=self.speed,
-            parent=parent
+            speed=self.speed
         )
         self.toddler = toddler
         self.space.place_agent(toddler, pos)

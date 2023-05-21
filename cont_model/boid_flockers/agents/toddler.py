@@ -3,6 +3,7 @@ import numpy as np
 from enum import Enum
 
 from .toy import Toy
+from boid_flockers.utils import *
 
 
 class Action(Enum):
@@ -20,8 +21,7 @@ class Toddler(mesa.Agent):
         unique_id,
         model,
         pos,
-        speed,
-        parent
+        speed
     ):
         """
         Create a new Boid flocker agent.
@@ -31,7 +31,6 @@ class Toddler(mesa.Agent):
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
         self.speed = speed
-        self.parent = parent
 
         self.velocity = None
 
@@ -56,10 +55,13 @@ class Toddler(mesa.Agent):
             self._step_toy_interaction()
 
     def _step_crawl(self):
+        toys = get_toys(self.pos, self.model, self.toy_interaction_range)
 
-        # toys = self.model.space.get_neighbors(
-        #     self.pos, self.toy_interaction_range, False)
-        # print(f'distra: {self.steps_until_distraction}, Toys in range: {toys}')
+        if toys:
+            self.target = toys[0]
+            self.next_action = Action.INTERACT_WITH_TOY
+            return
+
         if self.steps_until_distraction == 0:
             self.target = None
 
@@ -68,36 +70,29 @@ class Toddler(mesa.Agent):
 
         self.velocity = calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
-        self._correct_out_of_bounds(new_pos)
+        new_pos = correct_out_of_bounds(new_pos, self.model.space)
 
         if self.steps_until_distraction:
             self.steps_until_distraction -= 1
         self.model.space.move_agent(self, new_pos)
 
-        toys = self._get_toys(self.toy_interaction_range)
-
-        if toys:
-            self.target = toys[0]
-            self.next_action = Action.INTERACT_WITH_TOY
-
     def _step_toy_interaction(self):
         throw_direction = None
 
         if self.model.coordination > np.random.rand():
-            throw_direction = calc_norm_vector(self.pos, self.parent.pos) * self.toy_throw_range
+            throw_direction = calc_norm_vector(self.pos, self.model.parent.pos) * self.toy_throw_range
         else:
             throw_direction = np.random.rand(2)
             throw_direction = throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
 
         new_pos = self.pos + throw_direction
-
-        for idx, value in enumerate([self.model.space.width, self.model.space.height]):
-            new_pos[idx] = max(0, new_pos[idx])
-            new_pos[idx] = min(value - .01, new_pos[idx])
+        new_pos = correct_out_of_bounds(new_pos, self.model.space)
 
         print(f'throw = {throw_direction}, {type(self.target.pos)}, {self.target.pos}, {new_pos}')
 
         self.model.space.move_agent(self.target, new_pos)
+
+        self.model.parent.respond(self.target)
 
         self.target.times_interacted_with += 1
         self.target = None
@@ -105,7 +100,7 @@ class Toddler(mesa.Agent):
         self.next_action = Action.LOOK_FOR_TOY
 
     def _step_change_target(self):
-        toys = self._get_toys()
+        toys = get_toys(self.pos, self.model)
 
         probabilities = np.array(
             [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in toys])
@@ -126,39 +121,3 @@ class Toddler(mesa.Agent):
             self.steps_until_distraction = np.random.randint(steps_to_target)
 
         self.next_action = Action.CRAWL
-
-    def _get_toys(self, range=None):
-        toys = []
-
-        if range is None:
-            toys = self.model.schedule.agents
-        else:
-            toys = self.model.space.get_neighbors(
-                self.pos, range, False)
-
-        return [a for a in toys if type(a) == Toy]
-
-    def _correct_out_of_bounds(self, new_pos):
-        if new_pos[0] < 0:
-            new_pos[0] = -new_pos[0]
-            self.velocity[0] = -self.velocity[0]
-        elif new_pos[0] > self.model.space.width:
-            new_pos[0] = 2 * self.model.space.width - new_pos[0]
-            self.velocity[0] = -self.velocity[0]
-
-        if new_pos[1] < 0:
-            new_pos[1] = -new_pos[1]
-            self.velocity[1] = -self.velocity[1]
-        elif new_pos[1] > self.model.space.height:
-            new_pos[1] = 2 * self.model.space.height - new_pos[1]
-            self.velocity[1] = -self.velocity[1]
-
-
-def calc_dist(p1, p2):
-    return ((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)**0.5
-
-
-def calc_norm_vector(p1, p2):
-    vec = [p2[0] - p1[0], p2[1] - p1[1]]
-
-    return vec / np.linalg.norm(vec)

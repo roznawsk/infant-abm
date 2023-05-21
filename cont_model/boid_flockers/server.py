@@ -36,10 +36,10 @@ grid_size = 300
 
 model_params = {
     "title": mesa.visualization.StaticText(f'Grid size: {grid_size}'),
-    "lego_count": 8,
     "width": grid_size,
     "height": grid_size,
     "speed": 2,
+    "lego_count": mesa.visualization.Slider("Brick count", 1, 1, 15),
     "precision": mesa.visualization.Slider("Toddler Precision", 100, 0, 100),
     "exploration": mesa.visualization.Slider("Toddler Exploration", 50, 0, 100),
     "coordination": mesa.visualization.Slider("Toddler Coordination", 100, 0, 100),

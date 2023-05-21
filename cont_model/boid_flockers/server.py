@@ -28,7 +28,8 @@ model_canvas = SimpleCanvas(portrayal, 900, 900)
 
 chart_element = mesa.visualization.ChartModule(
     [
-        {"Label": "Steps/Interaction", "Color": "#AA0000"},
+        {"Label": "Toddler satisfaction", "Color": "#991144"},
+        {"Label": "Parent satisfaction", "Color": "#441199"},
     ]
 )
 
@@ -39,10 +40,10 @@ model_params = {
     "width": grid_size,
     "height": grid_size,
     "speed": 2,
-    "lego_count": mesa.visualization.Slider("Brick count", 1, 1, 15),
-    "precision": mesa.visualization.Slider("Toddler Precision", 100, 0, 100),
+    "lego_count": mesa.visualization.Slider("Brick count", 5, 1, 15),
+    "precision": mesa.visualization.Slider("Toddler Precision", 50, 0, 100),
     "exploration": mesa.visualization.Slider("Toddler Exploration", 50, 0, 100),
-    "coordination": mesa.visualization.Slider("Toddler Coordination", 100, 0, 100),
+    "coordination": mesa.visualization.Slider("Toddler Coordination", 50, 0, 100),
     "responsiveness": mesa.visualization.Slider("Parent responsiveness", 50, 0, 100),
     "relevance": mesa.visualization.Slider("Parent relevance", 50, 0, 100)
 }

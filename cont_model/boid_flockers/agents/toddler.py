@@ -37,6 +37,9 @@ class Toddler(mesa.Agent):
         self.toy_interaction_range = 10
         self.toy_throw_range = 20
         self.target = None
+        self.bonus_target = None
+
+        self.satisfaction = 0
 
         self.next_action = Action.LOOK_FOR_TOY
 
@@ -55,12 +58,20 @@ class Toddler(mesa.Agent):
             self._step_toy_interaction()
 
     def _step_crawl(self):
-        toys = get_toys(self.pos, self.model, self.toy_interaction_range)
+        local_toys = get_toys(self.pos, self.model, self.toy_interaction_range)
 
-        if toys:
-            self.target = toys[0]
-            self.next_action = Action.INTERACT_WITH_TOY
-            return
+        if local_toys:
+            all_toys = get_toys(self.pos, self.model)
+
+            local_prob = np.array(
+                [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in local_toys]).sum()
+            all_prob = np.array(
+                [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in all_toys]).sum()
+
+            if local_prob / all_prob > np.random.rand():
+                self.target = local_toys[0]
+                self.next_action = Action.INTERACT_WITH_TOY
+                return
 
         if self.steps_until_distraction == 0:
             self.target = None
@@ -95,7 +106,11 @@ class Toddler(mesa.Agent):
         self.model.parent.respond(self.target)
 
         self.target.times_interacted_with += 1
+        self.model.parent.bonus_target = self.target
+        if self.target == self.bonus_target:
+            self.satisfaction += 1
         self.target = None
+        self.bonus_target = None
 
         self.next_action = Action.LOOK_FOR_TOY
 

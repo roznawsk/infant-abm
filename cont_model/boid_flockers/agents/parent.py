@@ -37,6 +37,9 @@ class Parent(mesa.Agent):
         self.toy_interaction_range = 20
         self.toy_throw_range = 40
         self.target = None
+        self.bonus_target = None
+
+        self.satisfaction = 0
 
         self.next_action = Action.WAIT
 
@@ -76,7 +79,11 @@ class Parent(mesa.Agent):
 
         self.model.space.move_agent(self.target, new_pos)
 
+        self.model.toddler.bonus_target = self.target
+        if self.target == self.bonus_target:
+            self.satisfaction += 1
         self.target = None
+        self.bonus_target = None
         self.next_action = Action.WAIT
 
     def respond(self, toy):

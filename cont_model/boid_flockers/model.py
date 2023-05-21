@@ -52,7 +52,8 @@ class ToddlerModel(mesa.Model):
 
         self.datacollector = mesa.DataCollector(
             {
-                "Steps/Interaction": get_steps
+                "Toddler satisfaction": get_toddler_satisfaction,
+                "Parent satisfaction": get_parent_satisfaction
             }
         )
 
@@ -104,8 +105,9 @@ class ToddlerModel(mesa.Model):
         self.datacollector.collect(self)
 
 
-def get_steps(m):
-    ksteps = m.schedule.steps / (sum([a.times_interacted_with for a in m.schedule.agents if type(
-        a) == Toy]) + 1)
+def get_toddler_satisfaction(model):
+    return model.toddler.satisfaction / model.schedule.steps
 
-    return ksteps
+
+def get_parent_satisfaction(model):
+    return model.parent.satisfaction / model.schedule.steps

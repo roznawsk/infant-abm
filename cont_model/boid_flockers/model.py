@@ -24,7 +24,7 @@ class ToddlerModel(mesa.Model):
         height,
         speed,
         lego_count,
-        perception,
+        exploration,
         precision,
         coordination
     ):
@@ -36,7 +36,7 @@ class ToddlerModel(mesa.Model):
 
         self.lego_count = lego_count
         self.speed = speed
-        self.perception = perception / 100 * width
+        self.exploration = exploration / 100
         self.precision = precision / 100
         self.coordination = coordination / 100
 
@@ -73,6 +73,8 @@ class ToddlerModel(mesa.Model):
             unique_id=self.lego_count,
             pos=pos,
             speed=self.speed)
+
+        self.toddler = toddler
         self.space.place_agent(toddler, pos)
         self.schedule.add(toddler)
 

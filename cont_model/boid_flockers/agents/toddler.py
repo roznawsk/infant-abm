@@ -2,8 +2,15 @@ import random
 import uuid
 import mesa
 import numpy as np
+from enum import Enum
 
 from .toy import Toy
+
+
+class Action(Enum):
+    CRAWL = 1
+    LOOK_FOR_TOY = 2
+    INTERACT_WITH_TOY = 3
 
 
 class Toddler(mesa.Agent):
@@ -27,104 +34,107 @@ class Toddler(mesa.Agent):
         self.pos = np.array(pos)
         self.speed = speed
 
-        if velocity is None:
-            velocity = self._rand_velocity()
+        self.velocity = None
 
-        self.velocity = velocity
-
-        self.inertia = 5
         self.toy_interaction_range = 10
         self.toy_throw_range = 20
         self.target = None
+
+        self.next_action = Action.LOOK_FOR_TOY
+
+        self.steps_until_distraction = None
 
     def step(self):
         """
         Get the Boid's neighbors, compute the new vector, and move accordingly.
         """
 
-        if self.target and dist(self.pos, self.target.pos) < self.toy_interaction_range:
-            self._interact_with_toy()
+        if self.next_action == Action.CRAWL:
+            self._step_crawl()
+        elif self.next_action == Action.LOOK_FOR_TOY:
+            self._step_change_target()
+        elif self.next_action == Action.INTERACT_WITH_TOY:
+            self._step_toy_interaction()
 
-        if self.target is None:
-            self._maybe_find_new_target()
+        # if self.target is None:
+        #     self._maybe_find_new_target()
 
-        self._set_new_velocity()
+    def _step_crawl(self):
+
+        toys = self.model.space.get_neighbors(
+            self.pos, self.toy_interaction_range, False)
+        print(f'distra: {self.steps_until_distraction}, Toys in range: {toys}')
+        if self.steps_until_distraction == 0:
+            self.target = None
+
+            self.next_action = Action.LOOK_FOR_TOY
+            return
+
+        self.velocity = calc_velocity(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
         self._correct_out_of_bounds(new_pos)
 
+        if self.steps_until_distraction:
+            self.steps_until_distraction -= 1
         self.model.space.move_agent(self, new_pos)
 
-    def _set_new_velocity(self):
-        new_velocity = None
-        inertia = self.inertia
+        toys = self.model.space.get_neighbors(
+            self.pos, self.toy_interaction_range, False)
 
-        if self.target:
-            new_velocity = calc_velocity(self.pos, self.target.pos)
-            new_velocity = self._random_rotate(new_velocity)
+        if toys:
+            self.target = toys[0]
+            self.next_action = Action.INTERACT_WITH_TOY
 
-            toy_dist = dist(self.pos, self.target.pos)
+    def _step_toy_interaction(self):
+        throw_direction = None
 
-            # print(toy_dist, inertia, self.toy_interaction_range, self.speed)
-
-            # inertia = inertia * \
-            #     min(1, max(0, toy_dist / self.speed - self.toy_interaction_range))
+        if self.model.coordination > np.random.rand():
+            throw_direction = np.array([0, self.toy_throw_range])
         else:
-            new_velocity = self._random_rotate(self.velocity)
+            throw_direction = np.array([np.random.randint(1) * 2 - 1, 0]) * self.toy_throw_range
+            # throw_direction = np.random.rand(2)
+            # throw_direction = throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
 
-        self.velocity = (self.velocity * inertia +
-                         new_velocity) / (inertia + 1)
+        # self.target.pos[0] -= self.toy_throw_range * \
+        #     np.random.uniform(-1, 1)
 
-    def _random_rotate(self, vector):
-        angle = np.random.uniform(-np.pi, np.pi) * (1 - self.model.precision)
+        new_pos = self.target.pos + throw_direction
 
-        sin = np.sin(angle)
-        cos = np.cos(angle)
+        for idx, value in enumerate([self.model.space.width, self.model.space.height]):
+            new_pos[idx] = max(0, new_pos[idx])
+            new_pos[idx] = min(value - .01, new_pos[idx])
 
-        rotation_matrix = np.array([[cos, -sin], [sin, cos]])
-        return rotation_matrix @ vector
+        print(f'throw = {throw_direction}, {type(self.target.pos)}, {self.target.pos}, {new_pos}')
 
-    def _interact_with_toy(self):
-        self.target.pos[0] -= self.toy_throw_range * \
-            np.random.uniform(-1, 1)
+        self.model.space.move_agent(self.target, new_pos)
 
-        self.target.pos[0] = max(0, self.target.pos[0])
-        self.target.pos[0] = min(self.model.space.width, self.target.pos[0])
-
-        self.target.pos[1] -= self.toy_throw_range * \
-            np.random.uniform((-1 + self.model.coordination), 1)
-
-        self.target.pos[1] = max(0, self.target.pos[1])
-        self.target.pos[1] = min(self.model.space.height, self.target.pos[1])
-
-        self.target.deactivate()
+        self.target.times_interacted_with += 1
         self.target = None
 
-    def _maybe_find_new_target(self):
-        toys_in_neighbourhood = self.model.space.get_neighbors(
-            self.pos, self.model.perception, False)
+        self.next_action = Action.LOOK_FOR_TOY
 
-        x = np.random.random() * self.model.space.x_max
-        y = np.random.random() * self.model.space.y_max
-        pos = np.array((x, y))
-
-        # toys_in_neighbourhood.append(
-        #     Toy(model=self.model, unique_id=uuid.uuid4(), pos=pos)
-        # )
-
-        # toys_in_neighbourhood[-1].times_interacted_with = max(
-        #     [agent.times_interacted_with for agent in self.model.schedule.agents if type(agent) == Toy])
+    def _step_change_target(self):
+        toys = [a for a in self.model.schedule.agents if type(a) == Toy]
 
         probabilities = np.array(
-            [1 / (toy.times_interacted_with + 1) for toy in toys_in_neighbourhood])
+            [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in toys])
 
         probabilities = probabilities / probabilities.sum()
 
-        if toys_in_neighbourhood and np.random.random() > (1 - self.model.precision):
-            [target] = np.random.choice(
-                toys_in_neighbourhood, size=1, p=probabilities)
-            self.velocity = calc_velocity(self.pos, target.pos)
-            self.target = target
-            self.target.activate()
+        [target] = np.random.choice(toys, size=1, p=probabilities)
+        self.velocity = calc_velocity(self.pos, target.pos)
+        self.target = target
+
+        print(f'prec = {self.model.precision}')
+
+        if self.model.precision > np.random.rand():
+            self.steps_until_distraction = None
+        else:
+            dist = calc_dist(self.pos, self.target.pos)
+            steps_to_target = max(1, np.floor(dist - self.toy_interaction_range) / self.speed)
+            self.steps_until_distraction = np.random.randint(steps_to_target)
+
+        self.next_action = Action.CRAWL
 
     def _correct_out_of_bounds(self, new_pos):
         if new_pos[0] < 0:
@@ -141,12 +151,8 @@ class Toddler(mesa.Agent):
             new_pos[1] = 2 * self.model.space.height - new_pos[1]
             self.velocity[1] = -self.velocity[1]
 
-    def _rand_velocity(self):
-        velocity = np.random.random(2) * 2 - 1
-        return velocity / np.linalg.norm(velocity)
 
-
-def dist(p1, p2):
+def calc_dist(p1, p2):
     return ((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)**0.5
 
 

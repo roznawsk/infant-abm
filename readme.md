@@ -11,3 +11,9 @@
 ### Reliant traits - relating to the guardian
 * dependence - how much affirmation from the guardian the toddler requires
 * attention seeking - how much does the toddler struggle to gain parent's attention
+
+
+## Parent traits
+* guidance - how close the parent tries to stay to the toddler
+* responsiveness - how likely the parent is to respond to the toddlers actions
+* relevancy - how pertient are the parents responses

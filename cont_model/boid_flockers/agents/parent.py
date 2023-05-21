@@ -11,7 +11,7 @@ class Action(Enum):
     INTERACT_WITH_TOY = 3
 
 
-class Toddler(mesa.Agent):
+class Parent(mesa.Agent):
     """
     """
 
@@ -20,8 +20,7 @@ class Toddler(mesa.Agent):
         unique_id,
         model,
         pos,
-        speed,
-        parent
+        speed
     ):
         """
         Create a new Boid flocker agent.
@@ -31,12 +30,11 @@ class Toddler(mesa.Agent):
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
         self.speed = speed
-        self.parent = parent
 
         self.velocity = None
 
-        self.toy_interaction_range = 10
-        self.toy_throw_range = 20
+        self.toy_interaction_range = 20
+        self.toy_throw_range = 40
         self.target = None
 
         self.next_action = Action.LOOK_FOR_TOY
@@ -48,25 +46,30 @@ class Toddler(mesa.Agent):
         Get the Boid's neighbors, compute the new vector, and move accordingly.
         """
 
-        if self.next_action == Action.CRAWL:
-            self._step_crawl()
-        elif self.next_action == Action.LOOK_FOR_TOY:
-            self._step_change_target()
-        elif self.next_action == Action.INTERACT_WITH_TOY:
-            self._step_toy_interaction()
+        pass
+
+        # if self.next_action == Action.CRAWL:
+        #     self._step_crawl()
+        # elif self.next_action == Action.LOOK_FOR_TOY:
+        #     self._step_change_target()
+        # elif self.next_action == Action.INTERACT_WITH_TOY:
+        #     self._step_toy_interaction()
+
+        # if self.target is None:
+        #     self._maybe_find_new_target()
 
     def _step_crawl(self):
 
-        # toys = self.model.space.get_neighbors(
-        #     self.pos, self.toy_interaction_range, False)
-        # print(f'distra: {self.steps_until_distraction}, Toys in range: {toys}')
+        toys = self.model.space.get_neighbors(
+            self.pos, self.toy_interaction_range, False)
+        print(f'distra: {self.steps_until_distraction}, Toys in range: {toys}')
         if self.steps_until_distraction == 0:
             self.target = None
 
             self.next_action = Action.LOOK_FOR_TOY
             return
 
-        self.velocity = calc_norm_vector(self.pos, self.target.pos)
+        self.velocity = calc_velocity(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
         self._correct_out_of_bounds(new_pos)
 
@@ -74,7 +77,8 @@ class Toddler(mesa.Agent):
             self.steps_until_distraction -= 1
         self.model.space.move_agent(self, new_pos)
 
-        toys = self._get_toys(self.toy_interaction_range)
+        toys = self.model.space.get_neighbors(
+            self.pos, self.toy_interaction_range, False)
 
         if toys:
             self.target = toys[0]
@@ -84,12 +88,16 @@ class Toddler(mesa.Agent):
         throw_direction = None
 
         if self.model.coordination > np.random.rand():
-            throw_direction = calc_norm_vector(self.pos, self.parent.pos) * self.toy_throw_range
+            throw_direction = np.array([0, self.toy_throw_range])
         else:
-            throw_direction = np.random.rand(2)
-            throw_direction = throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
+            throw_direction = np.array([np.random.randint(1) * 2 - 1, 0]) * self.toy_throw_range
+            # throw_direction = np.random.rand(2)
+            # throw_direction = throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
 
-        new_pos = self.pos + throw_direction
+        # self.target.pos[0] -= self.toy_throw_range * \
+        #     np.random.uniform(-1, 1)
+
+        new_pos = self.target.pos + throw_direction
 
         for idx, value in enumerate([self.model.space.width, self.model.space.height]):
             new_pos[idx] = max(0, new_pos[idx])
@@ -105,7 +113,7 @@ class Toddler(mesa.Agent):
         self.next_action = Action.LOOK_FOR_TOY
 
     def _step_change_target(self):
-        toys = self._get_toys()
+        toys = [a for a in self.model.schedule.agents if type(a) == Toy]
 
         probabilities = np.array(
             [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in toys])
@@ -113,7 +121,7 @@ class Toddler(mesa.Agent):
         probabilities = probabilities / probabilities.sum()
 
         [target] = np.random.choice(toys, size=1, p=probabilities)
-        self.velocity = calc_norm_vector(self.pos, target.pos)
+        self.velocity = calc_velocity(self.pos, target.pos)
         self.target = target
 
         print(f'prec = {self.model.precision}')
@@ -126,17 +134,6 @@ class Toddler(mesa.Agent):
             self.steps_until_distraction = np.random.randint(steps_to_target)
 
         self.next_action = Action.CRAWL
-
-    def _get_toys(self, range=None):
-        toys = []
-
-        if range is None:
-            toys = self.model.schedule.agents
-        else:
-            toys = self.model.space.get_neighbors(
-                self.pos, range, False)
-
-        return [a for a in toys if type(a) == Toy]
 
     def _correct_out_of_bounds(self, new_pos):
         if new_pos[0] < 0:
@@ -158,7 +155,7 @@ def calc_dist(p1, p2):
     return ((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)**0.5
 
 
-def calc_norm_vector(p1, p2):
-    vec = [p2[0] - p1[0], p2[1] - p1[1]]
+def calc_velocity(p1, p2):
+    velocity = [p2[0] - p1[0], p2[1] - p1[1]]
 
-    return vec / np.linalg.norm(vec)
+    return velocity / np.linalg.norm(velocity)

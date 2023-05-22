@@ -48,24 +48,7 @@ class Toy(mesa.Agent):
         """
         Get the Boid's neighbors, compute the new vector, and move accordingly.
         """
-
-        # neighbors = self.model.space.get_neighbors(self.pos, self.vision, False)
-        # self.velocity += (
-        #     self.cohere(neighbors) * self.cohere_factor
-        #     + self.separate(neighbors) * self.separate_factor
-        #     + self.match_heading(neighbors) * self.match_factor
-        # ) / 2
-        # self.velocity /= np.linalg.norm(self.velocity)
-        # new_pos = self.pos + self.velocity * self.speed
-        # self.model.space.move_agent(self, new_pos)
         pass
-
-    def activate(self):
-        self.color = self.color_activated
-        self.times_interacted_with += 1
-
-    def deactivate(self):
-        self.color = self.color_deactivated
 
     def _deactivated_color(self):
         color_rgb = self.color_activated.lstrip('#')

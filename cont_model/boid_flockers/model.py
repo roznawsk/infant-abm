@@ -9,7 +9,9 @@ import mesa
 import numpy as np
 import random
 
+
 from .agents.toddler import Toddler
+from .agents.parent import Parent
 from .agents.toy import Toy
 
 
@@ -24,9 +26,11 @@ class ToddlerModel(mesa.Model):
         height,
         speed,
         lego_count,
-        perception,
+        exploration,
         precision,
-        coordination
+        coordination,
+        responsiveness,
+        relevance
     ):
         """
         Create a new Toddler model.
@@ -36,16 +40,20 @@ class ToddlerModel(mesa.Model):
 
         self.lego_count = lego_count
         self.speed = speed
-        self.perception = perception / 100 * width
+        self.parent_speed = 2 * speed
+        self.exploration = exploration / 100
         self.precision = precision / 100
         self.coordination = coordination / 100
+        self.responsiveness = responsiveness / 100
+        self.relevance = relevance / 100
 
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
 
         self.datacollector = mesa.DataCollector(
             {
-                "Steps/Interaction": get_steps
+                "Toddler satisfaction": get_toddler_satisfaction,
+                "Parent satisfaction": get_parent_satisfaction
             }
         )
 
@@ -65,6 +73,20 @@ class ToddlerModel(mesa.Model):
             self.space.place_agent(brick, pos)
             self.schedule.add(brick)
 
+        parent = Parent(
+            model=self,
+            unique_id=self.lego_count + 1,
+            pos=pos,
+            speed=self.parent_speed
+        )
+        self.parent = parent
+
+        x = self.random.random() * self.space.x_max
+        y = self.random.random() * self.space.y_max
+        pos = np.array((x, y))
+        self.space.place_agent(parent, pos)
+        self.schedule.add(parent)
+
         x = 0.5 * self.space.x_max
         y = 0.5 * self.space.y_max
         pos = np.array((x, y))
@@ -72,7 +94,9 @@ class ToddlerModel(mesa.Model):
             model=self,
             unique_id=self.lego_count,
             pos=pos,
-            speed=self.speed)
+            speed=self.speed
+        )
+        self.toddler = toddler
         self.space.place_agent(toddler, pos)
         self.schedule.add(toddler)
 
@@ -81,8 +105,9 @@ class ToddlerModel(mesa.Model):
         self.datacollector.collect(self)
 
 
-def get_steps(m):
-    ksteps = m.schedule.steps / (sum([a.times_interacted_with for a in m.schedule.agents if type(
-        a) == Toy]) + 1)
+def get_toddler_satisfaction(model):
+    return model.toddler.satisfaction / model.schedule.steps
 
-    return ksteps
+
+def get_parent_satisfaction(model):
+    return model.parent.satisfaction / model.schedule.steps

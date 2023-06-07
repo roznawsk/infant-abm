@@ -1,6 +1,6 @@
 import numpy as np
 
-from boid_flockers.agents.toy import Toy
+from agents.toy import Toy
 
 
 def calc_dist(p1, p2):
@@ -23,7 +23,7 @@ def correct_out_of_bounds(pos, space):
     return pos
 
 
-def get_toys(pos, model, range=None):
+def get_toys(model, pos=None, range=None):
     toys = []
 
     if range is None:

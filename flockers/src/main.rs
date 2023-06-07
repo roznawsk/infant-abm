@@ -25,6 +25,13 @@ pub static JUMP: f32 = 0.7;
 pub static DISCRETIZATION: f32 = 10.0 / 1.5;
 pub static TOROIDAL: bool = true;
 
+pub static LEGO_COUNT: i16 = 5;
+pub static PRECISION: f32 = 0.5;
+pub static EXPLORATION: f32 = 0.5;
+pub static COORDINATION: f32 = 0.5;
+pub static RESPONSIVENESS: f32 = 0.5;
+pub static RELEVANCE: f32 = 0.5;
+
 // Main used when only the simulation should run, without any visualization.
 #[cfg(not(any(feature = "visualization", feature = "visualization_wasm")))]
 fn main() {

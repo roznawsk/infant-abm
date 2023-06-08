@@ -10,11 +10,11 @@ import numpy as np
 import random
 
 
-from agents.toddler import Toddler
-from agents.parent import Parent
-from agents.toy import Toy
+from boid_flockers.agents.toddler import Toddler
+from boid_flockers.agents.parent import Parent
+from boid_flockers.agents.toy import Toy
 
-from utils import *
+from boid_flockers.utils import *
 
 
 class ToddlerModel(mesa.Model):
@@ -32,8 +32,7 @@ class ToddlerModel(mesa.Model):
         precision,
         coordination,
         responsiveness,
-        relevance,
-        success_dist
+        relevance
     ):
         """
         Create a new Toddler model.
@@ -49,17 +48,18 @@ class ToddlerModel(mesa.Model):
         self.coordination = coordination / 100
         self.responsiveness = responsiveness / 100
         self.relevance = relevance / 100
-        self.success_dist = success_dist
 
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
 
-        # self.datacollector = mesa.DataCollector(
-        #     {
-        #         "Toddler satisfaction": get_toddler_satisfaction,
-        #         "Parent satisfaction": get_parent_satisfaction
-        #     }
-        # )
+        self.datacollector = mesa.DataCollector(
+            {
+                # "Toddler satisfaction": get_toddler_satisfaction,
+                # "Parent satisfaction": get_parent_satisfaction
+                "dist_middle": self.get_middle_dist,
+                # "dist_parent_infant": self.get_parent_infant_dist
+            }
+        )
 
         self.make_agents()
         self.running = True
@@ -107,13 +107,9 @@ class ToddlerModel(mesa.Model):
     def step(self):
         self.schedule.step()
 
-        # self.datacollector.collect(self)
+        self.datacollector.collect(self)
 
-    def success(self):
-        total_dist = self.goal_dist()
-        return total_dist <= self.success_dist
-
-    def goal_dist(self):
+    def get_middle_dist(self):
         middle_point = (self.parent.pos + self.toddler.pos) / 2
 
         total_dist = 0
@@ -122,9 +118,3 @@ class ToddlerModel(mesa.Model):
             total_dist += calc_dist(middle_point, toy.pos)
 
         return total_dist / len(toys)
-
-    def get_toddler_satisfaction(self):
-        return self.toddler.satisfaction / self.schedule.steps
-
-    def get_parent_satisfaction(self):
-        return self.parent.satisfaction / self.schedule.steps

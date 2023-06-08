@@ -2,7 +2,7 @@ import mesa
 import numpy as np
 from enum import Enum
 
-from utils import *
+from boid_flockers.utils import *
 
 
 class Action(Enum):
@@ -38,7 +38,7 @@ class Parent(mesa.Agent):
         self.target = None
         self.bonus_target = None
 
-        self.satisfaction = 0
+        self.satisfaction = []
 
         self.next_action = Action.WAIT
 
@@ -46,6 +46,8 @@ class Parent(mesa.Agent):
         """
         Get the Boid's neighbors, compute the new vector, and move accordingly.
         """
+
+        self.satisfaction.append(0)
 
         if self.next_action == Action.WAIT:
             pass
@@ -80,7 +82,7 @@ class Parent(mesa.Agent):
 
         self.model.toddler.bonus_target = self.target
         if self.target == self.bonus_target:
-            self.satisfaction += 1
+            self.satisfaction[-1] += 1
         self.target = None
         self.bonus_target = None
         self.next_action = Action.WAIT

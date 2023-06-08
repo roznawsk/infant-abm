@@ -1,10 +1,10 @@
 import mesa
 
-from .model import ToddlerModel
+from boid_flockers.model import ToddlerModel
 from .SimpleContinuousModule import SimpleCanvas
-from .agents.toddler import Toddler
-from .agents.parent import Parent
-from .agents.toy import Toy
+from boid_flockers.agents.toddler import Toddler
+from boid_flockers.agents.parent import Parent
+from boid_flockers.agents.toy import Toy
 
 
 def portrayal(agent):
@@ -28,8 +28,10 @@ model_canvas = SimpleCanvas(portrayal, 900, 900)
 
 chart_element = mesa.visualization.ChartModule(
     [
-        {"Label": "Toddler satisfaction", "Color": "#991144"},
-        {"Label": "Parent satisfaction", "Color": "#441199"},
+        # {"Label": "Toddler satisfaction", "Color": "#991144"},
+        # {"Label": "Parent satisfaction", "Color": "#441199"},
+        {"Label": "dist_middle", "Color": "#991144"},
+        # {"Label": "dist_parent_infant", "Color": "#441199"},
     ]
 )
 
@@ -40,6 +42,7 @@ model_params = {
     "width": grid_size,
     "height": grid_size,
     "speed": 2,
+    "success_dist": 40,
     "lego_count": mesa.visualization.Slider("Brick count", 5, 1, 15),
     "precision": mesa.visualization.Slider("Toddler Precision", 50, 0, 100),
     "exploration": mesa.visualization.Slider("Toddler Exploration", 50, 0, 100),

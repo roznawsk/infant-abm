@@ -57,7 +57,7 @@ def perform_simulation(parameter_sets):
     pool = multiprocessing.Pool()
     result = []
 
-    for res in tqdm.tqdm(pool.imap_unordered(run_param_set, parameter_sets, chunksize=3)):
+    for res in tqdm.tqdm(pool.imap_unordered(run_param_set, parameter_sets, chunksize=1), n_runs=len(parameter_sets)):
         result.append(res)
 
     results = pool.map(run_param_set, parameter_sets)
@@ -65,13 +65,13 @@ def perform_simulation(parameter_sets):
 
 
 def get_model_param_sets(default_params, sim_params):
-    grid_size = 2
+    grid_size = 8
 
     prec = np.linspace(0, 100, grid_size)
     exp = np.linspace(0, 100, grid_size)
-    coord = np.linspace(0, 100, grid_size)
-    resp = np.linspace(0, 100, grid_size)
-    rel = np.linspace(0, 100, grid_size)
+    coord = [100]
+    resp = [100]
+    rel = [0]
 
     params = []
 
@@ -93,8 +93,8 @@ def get_model_param_sets(default_params, sim_params):
 
 if __name__ == '__main__':
     grid_size = 300
-    repeats = 10
-    max_iter = 1000
+    repeats = 100
+    max_iter = 5000
 
     default_model_params = {
         'width': grid_size,
@@ -118,8 +118,9 @@ if __name__ == '__main__':
 
     parameter_sets = get_model_param_sets(default_model_params, sim_params)
     n_runs = len(parameter_sets)
+    print(f'Runs no: {n_runs}')
 
     result = perform_simulation(parameter_sets)
     out_df = pd.DataFrame(result, columns=columns)
 
-    out_df.to_hdf('results/run_new_parallel.hdf', 'hdfkey')
+    out_df.to_hdf('results/run_prec_exp.hdf', 'hdfkey')

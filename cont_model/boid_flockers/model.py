@@ -10,14 +10,14 @@ import numpy as np
 import random
 
 
-from boid_flockers.agents.toddler import Toddler
+from boid_flockers.agents.infant import Infant
 from boid_flockers.agents.parent import Parent
 from boid_flockers.agents.toy import Toy
 
 from boid_flockers.utils import *
 
 
-class ToddlerModel(mesa.Model):
+class InfantModel(mesa.Model):
     """
     Flocker model class. Handles agent creation, placement and scheduling.
     """
@@ -35,7 +35,7 @@ class ToddlerModel(mesa.Model):
         relevance
     ):
         """
-        Create a new Toddler model.
+        Create a new Infant model.
 
         Args:
             """
@@ -54,7 +54,7 @@ class ToddlerModel(mesa.Model):
 
         self.datacollector = mesa.DataCollector(
             {
-                # "Toddler satisfaction": get_toddler_satisfaction,
+                # "Infant satisfaction": get_infant_satisfaction,
                 # "Parent satisfaction": get_parent_satisfaction
                 "dist_middle": self.get_middle_dist,
                 # "dist_parent_infant": self.get_parent_infant_dist
@@ -94,15 +94,15 @@ class ToddlerModel(mesa.Model):
         x = 0.5 * self.space.x_max
         y = 0.5 * self.space.y_max
         pos = np.array((x, y))
-        toddler = Toddler(
+        infant = Infant(
             model=self,
             unique_id=self.lego_count,
             pos=pos,
             speed=self.speed
         )
-        self.toddler = toddler
-        self.space.place_agent(toddler, pos)
-        self.schedule.add(toddler)
+        self.infant = infant
+        self.space.place_agent(infant, pos)
+        self.schedule.add(infant)
 
     def step(self):
         self.schedule.step()
@@ -110,7 +110,7 @@ class ToddlerModel(mesa.Model):
         self.datacollector.collect(self)
 
     def get_middle_dist(self):
-        middle_point = (self.parent.pos + self.toddler.pos) / 2
+        middle_point = (self.parent.pos + self.infant.pos) / 2
 
         total_dist = 0
         toys = get_toys(self)

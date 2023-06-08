@@ -8,16 +8,17 @@ import multiprocessing
 
 from matplotlib import pyplot as plt
 
-
-from boid_flockers.model import ToddlerModel
+from boid_flockers.model import InfantModel
 from boid_flockers.SimpleContinuousModule import SimpleCanvas
-from boid_flockers.agents.toddler import Toddler
+from boid_flockers.agents.infant import Infant
 from boid_flockers.agents.parent import Parent
 from boid_flockers.agents.toy import Toy
 
+from pandas import DataFrame
+
 
 def single_run_param_set(param_set):
-    model = ToddlerModel(**param_set['model_params'])
+    model = InfantModel(**param_set['model_params'])
 
     goal_dist = []
 
@@ -29,7 +30,7 @@ def single_run_param_set(param_set):
     return {
         'goal_dist': goal_dist,
         'parent': model.parent.satisfaction,
-        'infant': model.toddler.satisfaction
+        'infant': model.infant.satisfaction
     }
 
 
@@ -57,7 +58,11 @@ def perform_parallel_run(param_set):
 
     pool.join()
 
-    return run_results
+    return {
+        'goal_dist': np.average([s['goal_dist'] for s in run_results], axis=0),
+        'parent': np.average([s['parent'] for s in run_results], axis=0),
+        'infant': np.average([s['infant'] for s in run_results], axis=0)
+    }
 
 
 def moving_average(a, n=3):
@@ -73,9 +78,9 @@ def plot_run_results(param_set, run_results):
 
     average_over_steps = 500
 
-    step_stats = np.average([s['goal_dist'] for s in run_results], axis=0)
-    parent_stats = np.average([s['parent'] for s in run_results], axis=0)
-    infant_stats = np.average([s['infant'] for s in run_results], axis=0)
+    step_stats = run_results['goal_dist']
+    parent_stats = run_results['parent']
+    infant_stats = run_results['infant']
 
     parent_stats = moving_average(parent_stats, average_over_steps)
     infant_stats = moving_average(infant_stats, average_over_steps)
@@ -138,6 +143,8 @@ if __name__ == '__main__':
         'relevance': 70
     }
 
+    result = 
+
     # for current_param in ['precision', 'coordination', 'responsiveness', 'relevance']:
     for current_param in ['coordination']:
         model_params = dict(default_model_params)
@@ -147,12 +154,10 @@ if __name__ == '__main__':
 
         r_steps = []
         r_parent = []
-        r_toddler = []
+        r_infant = []
         r_goal_dist = []
 
-        params_results = {'steps': [], 'parent': [], 'toddler': [], 'goal_dist': []}
-
-        print(model_params)
+        params_results = {'steps': [], 'parent': [], 'infant': [], 'goal_dist': []}
 
         param_set = {
             'model_params': model_params,
@@ -162,7 +167,7 @@ if __name__ == '__main__':
 
         start = time.time()
 
-        model = ToddlerModel(**(param_set['model_params']))
+        model = InfantModel(**(param_set['model_params']))
 
         run_results = perform_parallel_run(param_set)
         plot_run_results(param_set, run_results)
@@ -173,7 +178,7 @@ if __name__ == '__main__':
 
         # r_steps.append(np.average(params_results['steps']))
         # r_parent.append(np.average(params_results['parent']))
-        # r_toddler.append(np.average(params_results['toddler']))
+        # r_infant.append(np.average(params_results['infant']))
         # # r_goal_dist.append()
 
         # fig, ax1 = plt.subplots()
@@ -187,8 +192,8 @@ if __name__ == '__main__':
         # ax2.plot(x, r_parent, linestyle='dashed', marker='s', color='b')
         # ax2.set_ylabel('satisfaction')
 
-        # ax2.plot(x, r_toddler, linestyle='dashed', marker='s', color='orange')
-        # ax2.legend(['parent', 'toddler'])
+        # ax2.plot(x, r_infant, linestyle='dashed', marker='s', color='orange')
+        # ax2.legend(['parent', 'infant'])
         # ax2.set_ylim(bottom=0)
 
         # fig.tight_layout()

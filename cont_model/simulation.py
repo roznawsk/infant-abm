@@ -57,7 +57,7 @@ def perform_simulation(parameter_sets):
     pool = multiprocessing.Pool()
     result = []
 
-    for res in tqdm.tqdm(pool.imap_unordered(run_param_set, parameter_sets, chunksize=1), n_runs=len(parameter_sets)):
+    for res in tqdm.tqdm(pool.imap_unordered(run_param_set, parameter_sets, chunksize=1), total=len(parameter_sets)):
         result.append(res)
 
     results = pool.map(run_param_set, parameter_sets)
@@ -65,13 +65,11 @@ def perform_simulation(parameter_sets):
 
 
 def get_model_param_sets(default_params, sim_params):
-    grid_size = 8
-
-    prec = np.linspace(0, 100, grid_size)
-    exp = np.linspace(0, 100, grid_size)
-    coord = [100]
-    resp = [100]
-    rel = [0]
+    prec = np.linspace(20, 100, 5)
+    exp = np.linspace(0, 100, 6)
+    coord = np.linspace(0, 100, 6)
+    resp = np.linspace(0, 100, 6)
+    rel = np.linspace(0, 100, 4)
 
     params = []
 
@@ -118,9 +116,11 @@ if __name__ == '__main__':
 
     parameter_sets = get_model_param_sets(default_model_params, sim_params)
     n_runs = len(parameter_sets)
-    print(f'Runs no: {n_runs}')
+
+    file_size = 8 * max_iter * 3 * n_runs / 1024 / 1024
+    print(f'Runs no: {n_runs}, estimated file size: {file_size:.2f}MB')
 
     result = perform_simulation(parameter_sets)
     out_df = pd.DataFrame(result, columns=columns)
 
-    out_df.to_hdf('results/run_prec_exp.hdf', 'hdfkey')
+    out_df.to_hdf('results/run_grid_6.hdf', 'hdfkey')

@@ -10,9 +10,11 @@ import numpy as np
 import random
 
 
-from .agents.toddler import Toddler
-from .agents.parent import Parent
-from .agents.toy import Toy
+from boid_flockers.agents.toddler import Toddler
+from boid_flockers.agents.parent import Parent
+from boid_flockers.agents.toy import Toy
+
+from boid_flockers.utils import *
 
 
 class ToddlerModel(mesa.Model):
@@ -52,8 +54,10 @@ class ToddlerModel(mesa.Model):
 
         self.datacollector = mesa.DataCollector(
             {
-                "Toddler satisfaction": get_toddler_satisfaction,
-                "Parent satisfaction": get_parent_satisfaction
+                # "Toddler satisfaction": get_toddler_satisfaction,
+                # "Parent satisfaction": get_parent_satisfaction
+                "dist_middle": self.get_middle_dist,
+                # "dist_parent_infant": self.get_parent_infant_dist
             }
         )
 
@@ -102,12 +106,15 @@ class ToddlerModel(mesa.Model):
 
     def step(self):
         self.schedule.step()
+
         self.datacollector.collect(self)
 
+    def get_middle_dist(self):
+        middle_point = (self.parent.pos + self.toddler.pos) / 2
 
-def get_toddler_satisfaction(model):
-    return model.toddler.satisfaction / model.schedule.steps
+        total_dist = 0
+        toys = get_toys(self)
+        for toy in toys:
+            total_dist += calc_dist(middle_point, toy.pos)
 
-
-def get_parent_satisfaction(model):
-    return model.parent.satisfaction / model.schedule.steps
+        return total_dist / len(toys)

@@ -2,7 +2,6 @@ import mesa
 import numpy as np
 from enum import Enum
 
-from .toy import Toy
 from boid_flockers.utils import *
 
 
@@ -39,7 +38,7 @@ class Toddler(mesa.Agent):
         self.target = None
         self.bonus_target = None
 
-        self.satisfaction = 0
+        self.satisfaction = []
 
         self.next_action = Action.LOOK_FOR_TOY
 
@@ -50,6 +49,8 @@ class Toddler(mesa.Agent):
         Get the Boid's neighbors, compute the new vector, and move accordingly.
         """
 
+        self.satisfaction.append(0)
+
         if self.next_action == Action.CRAWL:
             self._step_crawl()
         elif self.next_action == Action.LOOK_FOR_TOY:
@@ -58,10 +59,10 @@ class Toddler(mesa.Agent):
             self._step_toy_interaction()
 
     def _step_crawl(self):
-        local_toys = get_toys(self.pos, self.model, self.toy_interaction_range)
+        local_toys = get_toys(self.model, self.pos, self.toy_interaction_range)
 
         if local_toys:
-            all_toys = get_toys(self.pos, self.model)
+            all_toys = get_toys(self.model, self.pos)
 
             local_prob = np.array(
                 [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in local_toys]).sum()
@@ -99,7 +100,7 @@ class Toddler(mesa.Agent):
         new_pos = self.pos + throw_direction
         new_pos = correct_out_of_bounds(new_pos, self.model.space)
 
-        print(f'throw = {throw_direction}, {type(self.target.pos)}, {self.target.pos}, {new_pos}')
+        # print(f'throw = {throw_direction}, {type(self.target.pos)}, {self.target.pos}, {new_pos}')
 
         self.model.space.move_agent(self.target, new_pos)
 
@@ -108,14 +109,14 @@ class Toddler(mesa.Agent):
         self.target.times_interacted_with += 1
         self.model.parent.bonus_target = self.target
         if self.target == self.bonus_target:
-            self.satisfaction += 1
+            self.satisfaction[-1] += 1
         self.target = None
         self.bonus_target = None
 
         self.next_action = Action.LOOK_FOR_TOY
 
     def _step_change_target(self):
-        toys = get_toys(self.pos, self.model)
+        toys = get_toys(self.model, self.pos)
 
         probabilities = np.array(
             [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in toys])
@@ -126,7 +127,7 @@ class Toddler(mesa.Agent):
         self.velocity = calc_norm_vector(self.pos, target.pos)
         self.target = target
 
-        print(f'prec = {self.model.precision}')
+        # print(f'prec = {self.model.precision}')
 
         if self.model.precision > np.random.rand():
             self.steps_until_distraction = None

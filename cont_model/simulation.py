@@ -2,6 +2,7 @@ import mesa
 
 import itertools
 import numpy as np
+import pandas as pd
 import time
 import multiprocessing
 
@@ -13,8 +14,6 @@ from boid_flockers.SimpleContinuousModule import SimpleCanvas
 from boid_flockers.agents.infant import Infant
 from boid_flockers.agents.parent import Parent
 from boid_flockers.agents.toy import Toy
-
-from pandas import DataFrame
 
 
 def single_run_param_set(param_set):
@@ -125,77 +124,112 @@ def plot_run_results(param_set, run_results):
     plt.show()
 
 
+def get_model_param_sets(default_params):
+    prec = np.linspace(0, 100, 2)
+    exp = np.linspace(0, 100, 2)
+    coord = np.linspace(0, 100, 2)
+    resp = np.linspace(0, 100, 2)
+    rel = np.linspace(0, 100, 2)
+
+    params = []
+
+    for param_set in itertools.product(*[prec, exp, coord, resp, rel]):
+        p, e, c, rs, rl = param_set
+
+        param_dict = {
+            'precision': p,
+            'exploration': e,
+            'coordination': c,
+            'responsiveness': rs,
+            'relevance': rl
+        }
+
+        params.append({**default_params, **param_dict})
+
+    return params
+
+
 if __name__ == '__main__':
     grid_size = 300
     success_dist = 40
     repeats = 50
-    max_iter = 10000
+    max_iter = 1000
 
     default_model_params = {
         'width': grid_size,
         'height': grid_size,
         'speed': 2,
         'lego_count': 4,
-        'precision': 70,
-        'exploration': 70,
-        'coordination': 70,
-        'responsiveness': 70,
-        'relevance': 70
+        'precision': 50,
+        'exploration': 50,
+        'coordination': 50,
+        'responsiveness': 50,
+        'relevance': 50
     }
 
-    result = 
+    columns = list(default_model_params.keys()) + ['repeats', 'max_iter', 'goal_distance',
+                                                   'parent_satisfaction', 'infant_satisfaction']
+    result = []
 
-    # for current_param in ['precision', 'coordination', 'responsiveness', 'relevance']:
-    for current_param in ['coordination']:
-        model_params = dict(default_model_params)
-
-        x = np.arange(0, 101, 10)
-        model_params[current_param] = 50
-
-        r_steps = []
-        r_parent = []
-        r_infant = []
-        r_goal_dist = []
-
-        params_results = {'steps': [], 'parent': [], 'infant': [], 'goal_dist': []}
+    for model_param_set in get_model_param_sets(default_model_params):
 
         param_set = {
-            'model_params': model_params,
+            'model_params': model_param_set,
             'max_iter': max_iter,
             'repeats': repeats
         }
 
         start = time.time()
 
-        model = InfantModel(**(param_set['model_params']))
-
         run_results = perform_parallel_run(param_set)
-        plot_run_results(param_set, run_results)
 
-        print('t = {:2f} ms'.format((time.time() - start) * 1000))
+        print('run t = {:.2f} ms'.format((time.time() - start) * 1000))
 
-        # print(results)
+        new_entry = list(model_param_set.values()) + [repeats, max_iter] + list(run_results.values())
 
-        # r_steps.append(np.average(params_results['steps']))
-        # r_parent.append(np.average(params_results['parent']))
-        # r_infant.append(np.average(params_results['infant']))
-        # # r_goal_dist.append()
+        result.append(new_entry)
 
-        # fig, ax1 = plt.subplots()
+    out_df = pd.DataFrame(result, columns=columns)
+    out_df.to_csv('../results/run.csv')
 
-        # ax1.plot(x, r_steps, linestyle='dashed', marker='s', color='r')
-        # ax1.set_xlabel(current_param)
-        # ax1.set_ylim(bottom=0, top=1000)
-        # ax1.set_ylabel('steps to goal', color='r')
+    # for current_param in ['precision', 'coordination', 'responsiveness', 'relevance']:
+    # for current_param in ['coordination']:
+    #     model_params = dict(default_model_params)
 
-        # ax2 = ax1.twinx()
-        # ax2.plot(x, r_parent, linestyle='dashed', marker='s', color='b')
-        # ax2.set_ylabel('satisfaction')
+    #     x = np.arange(0, 101, 10)
+    #     model_params[current_param] = 50
 
-        # ax2.plot(x, r_infant, linestyle='dashed', marker='s', color='orange')
-        # ax2.legend(['parent', 'infant'])
-        # ax2.set_ylim(bottom=0)
+    #     r_steps = []
+    #     r_parent = []
+    #     r_infant = []
+    #     r_goal_dist = []
 
-        # fig.tight_layout()
-        # plt.savefig(f'../../plots/big_{current_param}.png', dpi=300)
-        # plt.show()
+    #     params_results = {'steps': [], 'parent': [], 'infant': [], 'goal_dist': []}
+
+    #     plot_run_results(param_set, run_results)
+
+    # print(results)
+
+    # r_steps.append(np.average(params_results['steps']))
+    # r_parent.append(np.average(params_results['parent']))
+    # r_infant.append(np.average(params_results['infant']))
+    # # r_goal_dist.append()
+
+    # fig, ax1 = plt.subplots()
+
+    # ax1.plot(x, r_steps, linestyle='dashed', marker='s', color='r')
+    # ax1.set_xlabel(current_param)
+    # ax1.set_ylim(bottom=0, top=1000)
+    # ax1.set_ylabel('steps to goal', color='r')
+
+    # ax2 = ax1.twinx()
+    # ax2.plot(x, r_parent, linestyle='dashed', marker='s', color='b')
+    # ax2.set_ylabel('satisfaction')
+
+    # ax2.plot(x, r_infant, linestyle='dashed', marker='s', color='orange')
+    # ax2.legend(['parent', 'infant'])
+    # ax2.set_ylim(bottom=0)
+
+    # fig.tight_layout()
+    # plt.savefig(f'../../plots/big_{current_param}.png', dpi=300)
+    # plt.show()

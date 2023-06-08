@@ -2,7 +2,6 @@ import mesa
 import numpy as np
 from enum import Enum
 
-from .toy import Toy
 from boid_flockers.utils import *
 
 
@@ -39,7 +38,7 @@ class Parent(mesa.Agent):
         self.target = None
         self.bonus_target = None
 
-        self.satisfaction = 0
+        self.satisfaction = []
 
         self.next_action = Action.WAIT
 
@@ -47,6 +46,8 @@ class Parent(mesa.Agent):
         """
         Get the Boid's neighbors, compute the new vector, and move accordingly.
         """
+
+        self.satisfaction.append(0)
 
         if self.next_action == Action.WAIT:
             pass
@@ -56,7 +57,7 @@ class Parent(mesa.Agent):
             self._step_pass_toy()
 
     def _step_fetch_toy(self):
-        toys = get_toys(self.pos, self.model, self.toy_interaction_range)
+        toys = get_toys(self.model, self.pos, self.toy_interaction_range)
 
         if self.target in toys:
             self.next_action = Action.PASS_TOY
@@ -81,7 +82,7 @@ class Parent(mesa.Agent):
 
         self.model.toddler.bonus_target = self.target
         if self.target == self.bonus_target:
-            self.satisfaction += 1
+            self.satisfaction[-1] += 1
         self.target = None
         self.bonus_target = None
         self.next_action = Action.WAIT
@@ -98,10 +99,10 @@ class Parent(mesa.Agent):
         self.target = toy
 
     def _respond_irrelevant(self):
-        toys = get_toys(self.pos, self.model)
+        toys = get_toys(self.model, self.pos)
 
         probabilities = np.array(
-            [(1 / calc_dist(toy.pos, self.pos) + 0.01) for toy in toys])
+            [(1 / (calc_dist(toy.pos, self.pos) + 0.01)) for toy in toys])
 
         probabilities = probabilities / probabilities.sum()
 

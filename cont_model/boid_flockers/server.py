@@ -42,7 +42,6 @@ model_params = {
     "width": grid_size,
     "height": grid_size,
     "speed": 2,
-    "success_dist": 40,
     "lego_count": mesa.visualization.Slider("Brick count", 5, 1, 15),
     "precision": mesa.visualization.Slider("Toddler Precision", 50, 0, 100),
     "exploration": mesa.visualization.Slider("Toddler Exploration", 50, 0, 100),

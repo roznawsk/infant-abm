@@ -32,7 +32,8 @@ class InfantModel(mesa.Model):
         precision,
         coordination,
         responsiveness,
-        relevance
+        relevance,
+        average_over=300
     ):
         """
         Create a new Infant model.
@@ -49,14 +50,16 @@ class InfantModel(mesa.Model):
         self.responsiveness = responsiveness / 100
         self.relevance = relevance / 100
 
+        self.average_over = average_over
+
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
 
         self.datacollector = mesa.DataCollector(
             {
-                # "Infant satisfaction": get_infant_satisfaction,
-                # "Parent satisfaction": get_parent_satisfaction
-                "dist_middle": self.get_middle_dist,
+                "Infant satisfaction": self.get_infant_satisfaction,
+                "Parent satisfaction": self.get_parent_satisfaction
+                # "dist_middle": self.get_middle_dist,
                 # "dist_parent_infant": self.get_parent_infant_dist
             }
         )
@@ -108,6 +111,12 @@ class InfantModel(mesa.Model):
         self.schedule.step()
 
         self.datacollector.collect(self)
+
+    def get_infant_satisfaction(self):
+        return np.average(self.infant.satisfaction[-self.average_over:])
+
+    def get_parent_satisfaction(self):
+        return np.average(self.parent.satisfaction[-self.average_over:])
 
     def get_middle_dist(self):
         middle_point = (self.parent.pos + self.infant.pos) / 2

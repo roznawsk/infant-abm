@@ -66,8 +66,8 @@ def perform_simulation(parameter_sets):
 
 def get_model_param_sets(default_params, sim_params):
     prec = np.linspace(20, 100, 5)
-    exp = np.linspace(0, 100, 6)
-    coord = np.linspace(0, 100, 6)
+    exp = np.linspace(0, 100, 5)
+    coord = np.linspace(0, 100, 5)
     resp = np.linspace(0, 100, 6)
     rel = np.linspace(0, 100, 4)
 

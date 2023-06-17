@@ -160,3 +160,6 @@ cython_debug/
 #.idea/
 
 /examples/
+
+# Large files
+results/run_grid_6.hdf

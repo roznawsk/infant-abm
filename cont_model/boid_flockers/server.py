@@ -28,9 +28,9 @@ model_canvas = SimpleCanvas(portrayal, 900, 900)
 
 chart_element = mesa.visualization.ChartModule(
     [
-        # {"Label": "Infant satisfaction", "Color": "#991144"},
-        # {"Label": "Parent satisfaction", "Color": "#441199"},
-        {"Label": "dist_middle", "Color": "#991144"},
+        {"Label": "Infant satisfaction", "Color": "#991144"},
+        {"Label": "Parent satisfaction", "Color": "#441199"},
+        # {"Label": "dist_middle", "Color": "#991144"},
         # {"Label": "dist_parent_infant", "Color": "#441199"},
     ]
 )

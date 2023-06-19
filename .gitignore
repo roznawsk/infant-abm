@@ -163,3 +163,6 @@ cython_debug/
 
 # Large files
 results/run_grid_6.hdf
+
+# Output html / pdf
+/output/

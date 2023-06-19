@@ -84,7 +84,7 @@ const Simple_Continuous_Module = function(canvas_width, canvas_height) {
     width: canvas_width,
     height: canvas_height,
 	  style: 'border:1px dotted; \
-		background-image: url("local/custom/boid_flockers/resources/roadmap.png"); \
+		background-image: url("local/custom/infant_abm/resources/roadmap.png"); \
 		background-repeat: no-repeat; \
 		background-size: cover;'
   });

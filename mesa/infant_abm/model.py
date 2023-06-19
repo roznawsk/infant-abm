@@ -10,11 +10,11 @@ import numpy as np
 import random
 
 
-from boid_flockers.agents.infant import Infant
-from boid_flockers.agents.parent import Parent
-from boid_flockers.agents.toy import Toy
+from infant_abm.agents.infant import Infant
+from infant_abm.agents.parent import Parent
+from infant_abm.agents.toy import Toy
 
-from boid_flockers.utils import *
+from infant_abm.utils import *
 
 
 class InfantModel(mesa.Model):

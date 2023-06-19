@@ -3,6 +3,7 @@ import numpy as np
 from enum import Enum
 
 from infant_abm.utils import *
+from infant_abm.genetic_model.infant_genome import InfantGenome
 
 
 class Action(Enum):
@@ -12,24 +13,19 @@ class Action(Enum):
 
 
 class Infant(mesa.Agent):
-    """
-    """
-
     def __init__(
         self,
         unique_id,
         model,
         pos,
-        speed
+        speed,
+        genome: InfantGenome
     ):
-        """
-        Create a new Boid flocker agent.
-
-        Args:
-        """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
         self.speed = speed
+
+        self.genome: InfantGenome = genome
 
         self.velocity = None
 
@@ -62,7 +58,7 @@ class Infant(mesa.Agent):
         local_toys = get_toys(self.model, self.pos, self.toy_interaction_range)
 
         if local_toys:
-            if self.target in local_toys or self.model.precision < np.random.rand():
+            if self.target in local_toys or self.genome.precision < np.random.rand():
                 self.target = local_toys[0]
                 self.next_action = Action.INTERACT_WITH_TOY
                 return
@@ -84,7 +80,7 @@ class Infant(mesa.Agent):
     def _step_toy_interaction(self):
         throw_direction = None
 
-        if self.model.coordination > np.random.rand():
+        if self.genome.coordination > np.random.rand():
             throw_direction = calc_norm_vector(self.pos, self.model.parent.pos) * self.toy_throw_range
         else:
             throw_direction = np.random.rand(2)
@@ -117,7 +113,7 @@ class Infant(mesa.Agent):
         self.velocity = calc_norm_vector(self.pos, target.pos)
         self.target = target
 
-        if self.model.precision > np.random.rand():
+        if self.genome.precision > np.random.rand():
             self.steps_until_distraction = None
         else:
             dist = calc_dist(self.pos, self.target.pos)
@@ -127,4 +123,4 @@ class Infant(mesa.Agent):
         self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
-        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.model.exploration)
+        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.genome.exploration)

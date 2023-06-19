@@ -11,7 +11,7 @@ class Action(Enum):
     INTERACT_WITH_TOY = 3
 
 
-class Toddler(mesa.Agent):
+class Infant(mesa.Agent):
     """
     """
 
@@ -62,14 +62,7 @@ class Toddler(mesa.Agent):
         local_toys = get_toys(self.model, self.pos, self.toy_interaction_range)
 
         if local_toys:
-            all_toys = get_toys(self.model, self.pos)
-
-            local_prob = np.array(
-                [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in local_toys]).sum()
-            all_prob = np.array(
-                [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in all_toys]).sum()
-
-            if local_prob / all_prob > np.random.rand():
+            if self.target in local_toys or self.model.precision < np.random.rand():
                 self.target = local_toys[0]
                 self.next_action = Action.INTERACT_WITH_TOY
                 return
@@ -100,8 +93,6 @@ class Toddler(mesa.Agent):
         new_pos = self.pos + throw_direction
         new_pos = correct_out_of_bounds(new_pos, self.model.space)
 
-        # print(f'throw = {throw_direction}, {type(self.target.pos)}, {self.target.pos}, {new_pos}')
-
         self.model.space.move_agent(self.target, new_pos)
 
         self.model.parent.respond(self.target)
@@ -118,16 +109,13 @@ class Toddler(mesa.Agent):
     def _step_change_target(self):
         toys = get_toys(self.model, self.pos)
 
-        probabilities = np.array(
-            [1 / (toy.times_interacted_with * self.model.exploration + 1) for toy in toys])
+        probabilities = np.array([self._toy_probability(toy) for toy in toys])
 
         probabilities = probabilities / probabilities.sum()
 
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = calc_norm_vector(self.pos, target.pos)
         self.target = target
-
-        # print(f'prec = {self.model.precision}')
 
         if self.model.precision > np.random.rand():
             self.steps_until_distraction = None
@@ -137,3 +125,6 @@ class Toddler(mesa.Agent):
             self.steps_until_distraction = np.random.randint(steps_to_target)
 
         self.next_action = Action.CRAWL
+
+    def _toy_probability(self, toy):
+        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.model.exploration)

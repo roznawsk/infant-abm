@@ -13,6 +13,7 @@ import random
 from infant_abm.agents.infant import Infant
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
+from infant_abm.genetic_model.infant_genome import InfantGenome
 
 from infant_abm.utils import *
 
@@ -44,11 +45,15 @@ class InfantModel(mesa.Model):
         self.lego_count = lego_count
         self.speed = speed
         self.parent_speed = 2 * speed
-        self.exploration = exploration / 100
-        self.precision = precision / 100
-        self.coordination = coordination / 100
+
         self.responsiveness = responsiveness / 100
         self.relevance = relevance / 100
+
+        infant_genome = InfantGenome(
+            precision=precision / 100,
+            coordination=coordination / 100,
+            exploration=exploration / 100
+        )
 
         self.average_over = average_over
 
@@ -64,10 +69,10 @@ class InfantModel(mesa.Model):
             }
         )
 
-        self.make_agents()
+        self.make_agents(infant_genome)
         self.running = True
 
-    def make_agents(self):
+    def make_agents(self, infant_genome):
         """
         Create self.population agents, with random positions and starting headings.
         """
@@ -101,7 +106,8 @@ class InfantModel(mesa.Model):
             model=self,
             unique_id=self.lego_count,
             pos=pos,
-            speed=self.speed
+            speed=self.speed,
+            genome=infant_genome
         )
         self.infant = infant
         self.space.place_agent(infant, pos)

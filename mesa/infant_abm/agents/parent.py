@@ -2,7 +2,7 @@ import mesa
 import numpy as np
 from enum import Enum
 
-from boid_flockers.utils import *
+from infant_abm.utils import *
 
 
 class Action(Enum):

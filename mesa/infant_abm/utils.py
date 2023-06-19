@@ -1,6 +1,6 @@
 import numpy as np
 
-from boid_flockers.agents.toy import Toy
+from infant_abm.agents.toy import Toy
 
 
 def calc_dist(p1, p2):

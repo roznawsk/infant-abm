@@ -29,12 +29,13 @@ class InfantModel(mesa.Model):
         height,
         speed,
         lego_count,
-        exploration,
-        precision,
-        coordination,
         responsiveness,
         relevance,
-        average_over=300
+        visualization_average_steps=300,
+        exploration=None,
+        precision=None,
+        coordination=None,
+        infant_genome=None,
     ):
         """
         Create a new Infant model.
@@ -49,13 +50,14 @@ class InfantModel(mesa.Model):
         self.responsiveness = responsiveness / 100
         self.relevance = relevance / 100
 
-        infant_genome = InfantGenome(
-            precision=precision / 100,
-            coordination=coordination / 100,
-            exploration=exploration / 100
-        )
+        if infant_genome is None:
+            infant_genome = InfantGenome(
+                precision=precision / 100,
+                coordination=coordination / 100,
+                exploration=exploration / 100
+            )
 
-        self.average_over = average_over
+        self.visualization_average_steps = visualization_average_steps
 
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
@@ -119,10 +121,10 @@ class InfantModel(mesa.Model):
         self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):
-        return np.average(self.infant.satisfaction[-self.average_over:])
+        return np.average(self.infant.satisfaction[-self.visualization_average_steps:])
 
     def get_parent_satisfaction(self):
-        return np.average(self.parent.satisfaction[-self.average_over:])
+        return np.average(self.parent.satisfaction[-self.visualization_average_steps:])
 
     def get_middle_dist(self):
         middle_point = (self.parent.pos + self.infant.pos) / 2

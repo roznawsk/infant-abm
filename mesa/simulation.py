@@ -1,6 +1,3 @@
-import mesa
-
-import itertools
 import numpy as np
 import pandas as pd
 import multiprocessing
@@ -13,11 +10,16 @@ from infant_abm.model import InfantModel
 
 
 class Simulation:
-    def __init__(self, model_param_sets, max_iterations, repeats):
-        self.parameter_sets = parameter_sets
+    def __init__(self, model_param_sets, max_iterations, repeats, output_path=None):
+        self.parameter_sets = model_param_sets
 
         self.max_iterations = max_iterations
         self.repeats = repeats
+
+        if os.path.exists(output_path):
+            raise ValueError("Output path already exists")
+
+        self.output_path = output_path
 
         self.result = None
 
@@ -56,75 +58,28 @@ class Simulation:
                run_results['infant']]
 
     def run(self):
+        n_runs = len(self.parameter_sets)
+
+        file_size = 8 * self.max_iterations * 3 * n_runs / 1024 / 1024
+        print(f'Runs no: {n_runs}, estimated output size: {file_size:.2f}MB')
+
         pool = multiprocessing.Pool()
         result = []
 
         for res in tqdm.tqdm(
                 pool.imap_unordered(self._run_param_set, self.parameter_sets, chunksize=1),
-                total=len(parameter_sets)):
+                total=len(self.parameter_sets)):
             result.append(res)
 
-        results = pool.map(self._run_param_set, parameter_sets)
-        self.results = results
+        self.results = pool.map(self._run_param_set, self.parameter_sets)
         return self.results
 
+    def save(self):
+        columns = list(self.parameter_sets[0].keys()) + \
+            ['repeats', 'max_iter', 'goal_distance',
+             'parent_satisfaction', 'infant_satisfaction']
 
-def get_model_param_sets(default_params):
-    prec = np.linspace(20, 100, 2)
-    exp = np.linspace(0, 100, 2)
-    coord = np.linspace(0, 100, 2)
-    resp = np.linspace(0, 100, 1)
-    rel = np.linspace(0, 100, 1)
+        out_df = pd.DataFrame(self.results, columns=columns)
+        print(out_df)
 
-    params = []
-
-    for param_set in itertools.product(*[prec, exp, coord, resp, rel]):
-        p, e, c, rs, rl = param_set
-
-        params.append({**default_params, **{
-            'precision': p,
-            'exploration': e,
-            'coordination': c,
-            'responsiveness': rs,
-            'relevance': rl
-        }})
-
-    return params
-
-
-if __name__ == '__main__':
-    grid_size = 300
-    repeats = 10
-    max_iter = 5000
-
-    output_path = '../results/test_run_temp.hdf'
-
-    if os.path.exists(output_path):
-        raise ValueError("Output path already exists")
-
-    default_model_params = {
-        'width': grid_size,
-        'height': grid_size,
-        'speed': 2,
-        'lego_count': 4,
-        'precision': 50,
-        'exploration': 50,
-        'coordination': 50,
-        'responsiveness': 50,
-        'relevance': 50
-    }
-
-    columns = list(default_model_params.keys()) + ['repeats', 'max_iter', 'goal_distance',
-                                                   'parent_satisfaction', 'infant_satisfaction']
-
-    parameter_sets = get_model_param_sets(default_model_params)
-    n_runs = len(parameter_sets)
-
-    file_size = 8 * max_iter * 3 * n_runs / 1024 / 1024
-    print(f'Runs no: {n_runs}, estimated file size: {file_size:.2f}MB')
-
-    simulation = Simulation(model_param_sets=parameter_sets, max_iterations=max_iter, repeats=repeats)
-    result = simulation.run()
-    out_df = pd.DataFrame(result, columns=columns)
-
-    out_df.to_hdf(output_path, 'hdfkey')
+        out_df.to_hdf(self.output_path, 'hdfkey')

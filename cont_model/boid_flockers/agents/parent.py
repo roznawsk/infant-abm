@@ -70,8 +70,8 @@ class Parent(mesa.Agent):
         self.model.space.move_agent(self, new_pos)
 
     def _step_pass_toy(self):
-        throw_direction = calc_norm_vector(self.pos, self.model.toddler.pos) \
-            * min(self.toy_throw_range, calc_dist(self.pos, self.model.toddler.pos))
+        throw_direction = calc_norm_vector(self.pos, self.model.infant.pos) \
+            * min(self.toy_throw_range, calc_dist(self.pos, self.model.infant.pos))
 
         new_pos = self.pos + throw_direction
         new_pos = correct_out_of_bounds(new_pos, self.model.space)
@@ -80,7 +80,7 @@ class Parent(mesa.Agent):
 
         self.model.space.move_agent(self.target, new_pos)
 
-        self.model.toddler.bonus_target = self.target
+        self.model.infant.bonus_target = self.target
         if self.target == self.bonus_target:
             self.satisfaction[-1] += 1
         self.target = None

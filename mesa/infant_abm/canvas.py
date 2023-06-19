@@ -1,8 +1,8 @@
 import mesa
 
 
-class SimpleCanvas(mesa.visualization.VisualizationElement):
-    local_includes = ["boid_flockers/simple_continuous_canvas.js"]
+class Canvas(mesa.visualization.VisualizationElement):
+    local_includes = ["infant_abm/continuous_canvas.js"]
     portrayal_method = None
     canvas_height = 500
     canvas_width = 500

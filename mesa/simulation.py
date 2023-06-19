@@ -7,15 +7,9 @@ import time
 import multiprocessing
 import tqdm
 
-from ast import literal_eval
-
 from matplotlib import pyplot as plt
 
-from boid_flockers.model import InfantModel
-from boid_flockers.SimpleContinuousModule import SimpleCanvas
-from boid_flockers.agents.infant import Infant
-from boid_flockers.agents.parent import Parent
-from boid_flockers.agents.toy import Toy
+from infant_abm.model import InfantModel
 
 
 def single_run_param_set(param_set):
@@ -65,11 +59,11 @@ def perform_simulation(parameter_sets):
 
 
 def get_model_param_sets(default_params, sim_params):
-    prec = np.linspace(20, 100, 5)
-    exp = np.linspace(0, 100, 5)
-    coord = np.linspace(0, 100, 5)
-    resp = np.linspace(0, 100, 6)
-    rel = np.linspace(0, 100, 4)
+    prec = np.linspace(20, 100, 2)
+    exp = np.linspace(0, 100, 2)
+    coord = np.linspace(0, 100, 2)
+    resp = np.linspace(0, 100, 1)
+    rel = np.linspace(0, 100, 1)
 
     params = []
 
@@ -91,7 +85,7 @@ def get_model_param_sets(default_params, sim_params):
 
 if __name__ == '__main__':
     grid_size = 300
-    repeats = 100
+    repeats = 10
     max_iter = 5000
 
     default_model_params = {
@@ -123,4 +117,4 @@ if __name__ == '__main__':
     result = perform_simulation(parameter_sets)
     out_df = pd.DataFrame(result, columns=columns)
 
-    out_df.to_hdf('results/run_grid_6.hdf', 'hdfkey')
+    out_df.to_hdf('../results/test_run_temp.hdf', 'hdfkey')

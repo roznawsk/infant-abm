@@ -1,16 +1,16 @@
 import mesa
 
-from boid_flockers.model import InfantModel
-from boid_flockers.SimpleContinuousModule import SimpleCanvas
-from boid_flockers.agents.infant import Infant
-from boid_flockers.agents.parent import Parent
-from boid_flockers.agents.toy import Toy
+from infant_abm.model import InfantModel
+from infant_abm.canvas import Canvas
+from infant_abm.agents.infant import Infant
+from infant_abm.agents.parent import Parent
+from infant_abm.agents.toy import Toy
 
 
 def portrayal(agent):
     if type(agent) is Infant:
 
-        return {'Shape': 'boid_flockers/resources/infant_2.png', 'Layer': 1, 'w': 50, 'h': 50}
+        return {'Shape': 'infant_abm/resources/infant_2.png', 'Layer': 1, 'w': 50, 'h': 50}
 
     elif type(agent) is Toy:
         color = None
@@ -21,10 +21,10 @@ def portrayal(agent):
         return {'Shape': 'rect', 'w': 0.025, 'h': 0.025, 'Layer': 2, 'Color': color, 'Filled': 'true'}
 
     elif type(agent) is Parent:
-        return {'Shape': 'boid_flockers/resources/parent_2.png', 'Layer': 1, 'w': 50, 'h': 50}
+        return {'Shape': 'infant_abm/resources/parent_2.png', 'Layer': 1, 'w': 50, 'h': 50}
 
 
-model_canvas = SimpleCanvas(portrayal, 900, 900)
+model_canvas = Canvas(portrayal, 900, 900)
 
 chart_element = mesa.visualization.ChartModule(
     [

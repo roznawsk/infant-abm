@@ -57,6 +57,8 @@ class InfantModel(mesa.Model):
                 exploration=exploration / 100
             )
 
+        print('infant_genome', infant_genome)
+
         self.visualization_average_steps = visualization_average_steps
 
         self.schedule = mesa.time.RandomActivation(self)
@@ -104,6 +106,8 @@ class InfantModel(mesa.Model):
         x = 0.5 * self.space.x_max
         y = 0.5 * self.space.y_max
         pos = np.array((x, y))
+
+        print('creating_infant', infant_genome)
         infant = Infant(
             model=self,
             unique_id=self.lego_count,

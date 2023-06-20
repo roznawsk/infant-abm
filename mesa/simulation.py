@@ -6,56 +6,35 @@ import os
 
 from matplotlib import pyplot as plt
 
+from dataclasses import dataclass
+
 from infant_abm.model import InfantModel
+from infant_abm.genetic_model.infant_genome import InfantGenome
+
+
+@dataclass
+class RunResult:
+    parameter_set: dict
+    repeats: int
+    max_iterations: int
+    goal_dist: list[float]
+    parent_tps: list[int]
+    infant_tps: list[int]
 
 
 class Simulation:
     def __init__(self, model_param_sets, max_iterations, repeats, output_path=None):
         self.parameter_sets = model_param_sets
 
-        self.max_iterations = max_iterations
-        self.repeats = repeats
+        self.max_iterations: int = max_iterations
+        self.repeats: int = repeats
 
         if os.path.exists(output_path):
             raise ValueError("Output path already exists")
 
         self.output_path = output_path
 
-        self.result = None
-
-    def _single_run_param_set(self, param_set):
-        model = InfantModel(**param_set)
-
-        goal_dist = []
-
-        for _ in range(self.max_iterations):
-            goal_dist.append(model.get_middle_dist())
-
-            model.step()
-
-        return {
-            'goal_dist': goal_dist,
-            'parent': model.parent.satisfaction,
-            'infant': model.infant.satisfaction
-        }
-
-    def _run_param_set(self, param_set):
-        run_results = []
-
-        for _ in range(self.repeats):
-            run_results.append(self._single_run_param_set(param_set))
-
-        run_results = {
-            'goal_dist': np.average([s['goal_dist'] for s in run_results], axis=0),
-            'parent': np.average([s['parent'] for s in run_results], axis=0),
-            'infant': np.average([s['infant'] for s in run_results], axis=0)
-        }
-
-        return list(param_set.values()) \
-            + [self.repeats, self.max_iterations] \
-            + [run_results['goal_dist'],
-               run_results['parent'],
-               run_results['infant']]
+        self.result: list[RunResult] = None
 
     def run(self):
         n_runs = len(self.parameter_sets)
@@ -83,3 +62,36 @@ class Simulation:
         print(out_df)
 
         out_df.to_hdf(self.output_path, 'hdfkey')
+
+    def _run_param_set(self, param_set):
+        run_results = []
+
+        for _ in range(self.repeats):
+            run_results.append(self._single_run_param_set(param_set))
+
+        run_results = {
+            'goal_dist': np.average([s['goal_dist'] for s in run_results], axis=0),
+            'parent': np.average([s['parent'] for s in run_results], axis=0),
+            'infant': np.average([s['infant'] for s in run_results], axis=0)
+        }
+
+        return list(param_set.values()) \
+            + [self.repeats, self.max_iterations] \
+            + [run_results['goal_dist'],
+               run_results['parent'],
+               run_results['infant']]
+
+    def _single_run_param_set(self, param_set):
+        model = InfantModel(**param_set)
+
+        goal_dist = []
+
+        for _ in range(self.max_iterations):
+            model.step()
+            goal_dist.append(model.get_middle_dist())
+
+        return {
+            'goal_dist': goal_dist,
+            'parent': model.parent.satisfaction,
+            'infant': model.infant.satisfaction
+        }

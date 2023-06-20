@@ -2,7 +2,6 @@ import numpy as np
 import itertools
 
 from simulation import Simulation
-from infant_abm.genetic_model.infant_genome import InfantGenome
 
 
 def get_model_param_sets(default_params):
@@ -17,14 +16,10 @@ def get_model_param_sets(default_params):
     for param_set in itertools.product(*[prec, exp, coord, resp, rel]):
         p, e, c, rs, rl = param_set
 
-        i_genome = InfantGenome(precision=p, coordination=c, exploration=e)
-        print('igenome', i_genome.genome)
-
         params.append({**default_params, **{
-            # 'precision': p,
-            # 'exploration': e,
-            # 'coordination': c,
-            'infant_genome': i_genome,
+            'precision': p,
+            'exploration': e,
+            'coordination': c,
             'responsiveness': rs,
             'relevance': rl
         }})
@@ -35,7 +30,8 @@ def get_model_param_sets(default_params):
 if __name__ == '__main__':
     grid_size = 300
     repeats = 10
-    max_iter = 5000
+    max_iter = 1000
+    epochs = 500
 
     output_path = '../results/test_run_temp.hdf'
 
@@ -44,9 +40,9 @@ if __name__ == '__main__':
         'height': grid_size,
         'speed': 2,
         'lego_count': 4,
-        # 'precision': 50,
-        # 'exploration': 50,
-        # 'coordination': 50,
+        'precision': 50,
+        'exploration': 50,
+        'coordination': 50,
         'responsiveness': 50,
         'relevance': 50
     }

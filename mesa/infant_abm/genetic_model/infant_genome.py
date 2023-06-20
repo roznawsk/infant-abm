@@ -38,6 +38,11 @@ class InfantGenome:
         setattr(self, gene, new_val)
 
     def __getattr__(self, name: str):
+        print('getting attr', name)
+
+        if 'genome' not in self.__dict__:
+            raise RuntimeError('InfantGenome has no attribute genome')
+
         if name in self.genome:
             return self.genome[name]
         else:

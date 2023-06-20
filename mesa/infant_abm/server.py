@@ -5,6 +5,7 @@ from infant_abm.canvas import Canvas
 from infant_abm.agents.infant import Infant
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
+from infant_abm.genetic_model.infant_genome import InfantGenome
 
 
 def portrayal(agent):

@@ -109,6 +109,7 @@ class Infant(mesa.Agent):
 
         probabilities = probabilities / probabilities.sum()
 
+        print(probabilities)
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = calc_norm_vector(self.pos, target.pos)
         self.target = target

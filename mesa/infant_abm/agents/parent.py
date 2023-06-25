@@ -1,8 +1,9 @@
-import mesa
-import numpy as np
 from enum import Enum
 
-from infant_abm.utils import *
+from infant_abm.utils import calc_dist, get_toys, calc_norm_vector, correct_out_of_bounds
+
+import numpy as np
+import mesa
 
 
 class Action(Enum):
@@ -75,8 +76,6 @@ class Parent(mesa.Agent):
 
         new_pos = self.pos + throw_direction
         new_pos = correct_out_of_bounds(new_pos, self.model.space)
-
-        # print(f'throw = {throw_direction}, {type(self.target.pos)}, {self.target.pos}, {new_pos}')
 
         self.model.space.move_agent(self.target, new_pos)
 

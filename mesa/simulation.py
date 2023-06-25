@@ -1,15 +1,13 @@
-import numpy as np
-import pandas as pd
-import multiprocessing
-import tqdm
-import os
-
-from matplotlib import pyplot as plt
-
 from dataclasses import dataclass
 
+import multiprocessing
+import os
+import numpy as np
+import pandas as pd
+import tqdm
+
+
 from infant_abm.model import InfantModel
-from infant_abm.genetic_model.infant_genome import InfantGenome
 
 
 @dataclass
@@ -34,7 +32,7 @@ class Simulation:
 
         self.output_path = output_path
 
-        self.result: list[RunResult] = None
+        self.results: list[RunResult] = None
 
     def run(self):
         n_runs = len(self.parameter_sets)

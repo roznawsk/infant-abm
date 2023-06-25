@@ -2,29 +2,25 @@ import numpy as np
 import itertools
 
 from simulation import Simulation
-from infant_abm.genetic_model.infant_genome import InfantGenome
+from infant_abm.agents.infant import Params as InfantParams
 
 
 def get_model_param_sets(default_params):
-    prec = np.linspace(20, 100, 2)
-    exp = np.linspace(0, 100, 2)
-    coord = np.linspace(0, 100, 2)
-    resp = np.linspace(0, 100, 1)
-    rel = np.linspace(0, 100, 1)
+    prec = np.linspace(0.2, 1, 2)
+    exp = np.linspace(0, 1, 2)
+    coord = np.linspace(0, 1, 2)
+    resp = np.linspace(0, 1, 1)
+    rel = np.linspace(0, 1, 1)
 
     params = []
 
     for param_set in itertools.product(*[prec, exp, coord, resp, rel]):
         p, e, c, rs, rl = param_set
 
-        i_genome = InfantGenome(precision=p, coordination=c, exploration=e)
-        print('igenome', i_genome.genome)
+        i_params = InfantParams(precision=p, coordination=c, exploration=e)
 
         params.append({**default_params, **{
-            # 'precision': p,
-            # 'exploration': e,
-            # 'coordination': c,
-            'infant_genome': i_genome,
+            'infant_params': i_params,
             'responsiveness': rs,
             'relevance': rl
         }})

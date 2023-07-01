@@ -1,11 +1,11 @@
 from enum import Enum
 from dataclasses import dataclass
+import math
 
+from infant_abm.utils import get_toys, calc_norm_vector, correct_out_of_bounds
 
-from infant_abm.utils import calc_dist, get_toys, calc_norm_vector, correct_out_of_bounds
-
-import mesa
 import numpy as np
+import mesa
 
 
 class Action(Enum):
@@ -19,6 +19,18 @@ class Params:
     precision: float
     coordination: float
     exploration: float
+
+    def to_numpy(self):
+        return np.array([self.precision, self.coordination, self.exploration])
+
+    @staticmethod
+    def from_numpy(nd_array):
+        p, c, e = nd_array
+        return Params(precision=p, coordination=c, exploration=e)
+
+    @staticmethod
+    def random():
+        return Params.from_numpy(np.random.random(3))
 
 
 class Infant(mesa.Agent):
@@ -80,7 +92,7 @@ class Infant(mesa.Agent):
 
         self.velocity = calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
-        new_pos = correct_out_of_bounds(new_pos, self.model.space)
+        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
 
         if self.steps_until_distraction:
             self.steps_until_distraction -= 1
@@ -96,7 +108,7 @@ class Infant(mesa.Agent):
             throw_direction = throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
 
         new_pos = self.pos + throw_direction
-        new_pos = correct_out_of_bounds(new_pos, self.model.space)
+        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
 
         self.model.space.move_agent(self.target, new_pos)
 
@@ -124,8 +136,8 @@ class Infant(mesa.Agent):
         if self.params.precision > np.random.rand():
             self.steps_until_distraction = None
         else:
-            dist = calc_dist(self.pos, self.target.pos)
-            steps_to_target = max(1, np.floor(dist - self.toy_interaction_range) / self.speed)
+            target_dist = math.dist(self.pos, self.target.pos)
+            steps_to_target = max(1, np.floor(target_dist - self.toy_interaction_range) / self.speed)
             self.steps_until_distraction = np.random.randint(steps_to_target)
 
         self.next_action = Action.CRAWL

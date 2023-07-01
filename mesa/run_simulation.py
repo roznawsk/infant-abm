@@ -50,6 +50,6 @@ if __name__ == '__main__':
     parameter_sets = get_model_param_sets(default_model_params)
 
     simulation = Simulation(model_param_sets=parameter_sets, max_iterations=max_iter,
-                            repeats=repeats, output_path=output_path)
-    simulation.run()
-    simulation.save()
+                            repeats=repeats, output_path=output_path, display=True)
+    print(simulation.run())
+    # simulation.save()

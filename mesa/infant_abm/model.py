@@ -10,8 +10,9 @@ from infant_abm.agents.infant import Params as InfantParams
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
 
-from infant_abm.utils import calc_dist, get_toys
+from infant_abm.utils import get_toys
 
+import math
 import numpy as np
 import mesa
 
@@ -132,6 +133,9 @@ class InfantModel(mesa.Model):
         total_dist = 0
         toys = get_toys(self)
         for toy in toys:
-            total_dist += calc_dist(middle_point, toy.pos)
+            total_dist += math.dist(middle_point, toy.pos)
 
         return total_dist / len(toys)
+
+    def get_dims(self):
+        return [self.space.width, self.space.height]

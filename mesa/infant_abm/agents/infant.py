@@ -34,14 +34,7 @@ class Params:
 
 
 class Infant(mesa.Agent):
-    def __init__(
-        self,
-        unique_id,
-        model,
-        pos,
-        speed,
-        params: Params
-    ):
+    def __init__(self, unique_id, model, pos, speed, params: Params):
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
         self.speed = speed
@@ -102,10 +95,14 @@ class Infant(mesa.Agent):
         throw_direction = None
 
         if self.params.coordination > np.random.rand():
-            throw_direction = calc_norm_vector(self.pos, self.model.parent.pos) * self.toy_throw_range
+            throw_direction = (
+                calc_norm_vector(self.pos, self.model.parent.pos) * self.toy_throw_range
+            )
         else:
             throw_direction = np.random.rand(2)
-            throw_direction = throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
+            throw_direction = (
+                throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
+            )
 
         new_pos = self.pos + throw_direction
         new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
@@ -137,10 +134,14 @@ class Infant(mesa.Agent):
             self.steps_until_distraction = None
         else:
             target_dist = math.dist(self.pos, self.target.pos)
-            steps_to_target = max(1, np.floor(target_dist - self.toy_interaction_range) / self.speed)
+            steps_to_target = max(
+                1, np.floor(target_dist - self.toy_interaction_range) / self.speed
+            )
             self.steps_until_distraction = np.random.randint(steps_to_target)
 
         self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
-        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.params.exploration)
+        return np.power(
+            (toy.times_interacted_with + 1), 1 - 2 * self.params.exploration
+        )

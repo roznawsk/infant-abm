@@ -14,16 +14,9 @@ class Action(Enum):
 
 
 class Parent(mesa.Agent):
-    """
-    """
+    """ """
 
-    def __init__(
-        self,
-        unique_id,
-        model,
-        pos,
-        speed
-    ):
+    def __init__(self, unique_id, model, pos, speed):
         """
         Create a new Boid flocker agent.
 
@@ -72,8 +65,9 @@ class Parent(mesa.Agent):
         self.model.space.move_agent(self, new_pos)
 
     def _step_pass_toy(self):
-        throw_direction = calc_norm_vector(self.pos, self.model.infant.pos) \
-            * min(self.toy_throw_range, math.dist(self.pos, self.model.infant.pos))
+        throw_direction = calc_norm_vector(self.pos, self.model.infant.pos) * min(
+            self.toy_throw_range, math.dist(self.pos, self.model.infant.pos)
+        )
 
         new_pos = self.pos + throw_direction
         new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
@@ -102,7 +96,8 @@ class Parent(mesa.Agent):
         toys = get_toys(self.model, self.pos)
 
         probabilities = np.array(
-            [(1 / (math.dist(toy.pos, self.pos) + 0.01)) for toy in toys])
+            [(1 / (math.dist(toy.pos, self.pos) + 0.01)) for toy in toys]
+        )
 
         probabilities = probabilities / probabilities.sum()
 

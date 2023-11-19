@@ -39,10 +39,8 @@ canvas_element = mesa.visualization.CanvasGrid(toddler_abm_portrayal, 15, 15, 90
 model_params = {
     # The following line is an example to showcase StaticText.
     "title": mesa.visualization.StaticText("Parameters:"),
-    "initial_bricks": mesa.visualization.Slider(
-        "Initial Brick Population", 5, 1, 50
-    ),
-    "drops_brick": mesa.visualization.Slider("Brick drop probability", 40, 1, 100)
+    "initial_bricks": mesa.visualization.Slider("Initial Brick Population", 5, 1, 50),
+    "drops_brick": mesa.visualization.Slider("Brick drop probability", 40, 1, 100),
 }
 
 server = mesa.visualization.ModularServer(

@@ -40,7 +40,7 @@ class InfantModel(mesa.Model):
         Create a new Infant model.
 
         Args:
-            """
+        """
 
         mesa.Model.__init__(self)
 
@@ -55,7 +55,7 @@ class InfantModel(mesa.Model):
             infant_params = InfantParams(
                 precision=precision / 100,
                 coordination=coordination / 100,
-                exploration=exploration / 100
+                exploration=exploration / 100,
             )
 
         self.visualization_average_steps = visualization_average_steps
@@ -88,10 +88,7 @@ class InfantModel(mesa.Model):
             self.schedule.add(brick)
 
         parent = Parent(
-            model=self,
-            unique_id=self.lego_count + 1,
-            pos=pos,
-            speed=self.parent_speed
+            model=self, unique_id=self.lego_count + 1, pos=pos, speed=self.parent_speed
         )
         self.parent = parent
 
@@ -110,7 +107,7 @@ class InfantModel(mesa.Model):
             unique_id=self.lego_count,
             pos=pos,
             speed=self.speed,
-            params=infant_params
+            params=infant_params,
         )
         self.infant = infant
         self.space.place_agent(infant, pos)
@@ -122,10 +119,10 @@ class InfantModel(mesa.Model):
         self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):
-        return np.average(self.infant.satisfaction[-self.visualization_average_steps:])
+        return np.average(self.infant.satisfaction[-self.visualization_average_steps :])
 
     def get_parent_satisfaction(self):
-        return np.average(self.parent.satisfaction[-self.visualization_average_steps:])
+        return np.average(self.parent.satisfaction[-self.visualization_average_steps :])
 
     def get_middle_dist(self):
         middle_point = (self.parent.pos + self.infant.pos) / 2

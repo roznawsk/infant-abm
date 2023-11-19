@@ -21,42 +21,61 @@ class RunResult:
     infant_tps: np.ndarray
 
     def fitness(self, metric, goal_dist=None, average_steps=None):
-        if metric == 'goal_dist':
+        if metric == "goal_dist":
             try:
                 return np.where(self.goal_dist < goal_dist)[0][0]
             except IndexError:
                 return np.NaN
 
-        elif metric == 'parent_tps':
+        elif metric == "parent_tps":
             return moving_average(self.parent_tps, average_steps)[-1]
 
-        elif metric == 'infant_tps':
+        elif metric == "infant_tps":
             return moving_average(self.infant_tps, average_steps)[-1]
 
     def get_columns(self):
-        return ['width', 'height', 'speed', 'lego_count', 'responsiveness', 'relevance',
-                'precision', 'coordination', 'exploration', 'repeats', 'max_iter',
-                'goal_distance', 'parent_tps', 'infant_tps']
+        return [
+            "width",
+            "height",
+            "speed",
+            "lego_count",
+            "responsiveness",
+            "relevance",
+            "precision",
+            "coordination",
+            "exploration",
+            "repeats",
+            "max_iter",
+            "goal_distance",
+            "parent_tps",
+            "infant_tps",
+        ]
 
     def to_list(self):
-        return [self.parameter_set['width'],
-                self.parameter_set['height'],
-                self.parameter_set['speed'],
-                self.parameter_set['lego_count'],
-                self.parameter_set['responsiveness'],
-                self.parameter_set['relevance']] + \
-            list(self.parameter_set['infant_params'].to_numpy()) + \
+        return (
             [
+                self.parameter_set["width"],
+                self.parameter_set["height"],
+                self.parameter_set["speed"],
+                self.parameter_set["lego_count"],
+                self.parameter_set["responsiveness"],
+                self.parameter_set["relevance"],
+            ]
+            + list(self.parameter_set["infant_params"].to_numpy())
+            + [
                 self.repeats,
                 self.max_iterations,
                 self.goal_dist,
                 self.parent_tps,
-                self.infant_tps
-        ]
+                self.infant_tps,
+            ]
+        )
 
 
 class Simulation:
-    def __init__(self, model_param_sets, max_iterations, repeats, output_path=None, display=False):
+    def __init__(
+        self, model_param_sets, max_iterations, repeats, output_path=None, display=False
+    ):
         self.parameter_sets = model_param_sets
 
         self.max_iterations: int = max_iterations
@@ -76,14 +95,16 @@ class Simulation:
 
         file_size = 8 * self.max_iterations * 3 * n_runs / 1024 / 1024
         if self.display:
-            print(f'Runs no: {n_runs}, estimated output size: {file_size:.2f}MB')
+            print(f"Runs no: {n_runs}, estimated output size: {file_size:.2f}MB")
 
         pool = multiprocessing.Pool()
         results = []
 
         for res in tqdm.tqdm(
-                pool.imap(self._run_param_set, self.parameter_sets, chunksize=1),
-                total=len(self.parameter_sets), disable=not self.display):
+            pool.imap(self._run_param_set, self.parameter_sets, chunksize=1),
+            total=len(self.parameter_sets),
+            disable=not self.display,
+        ):
             results.append(res)
 
         self.results = results
@@ -95,7 +116,7 @@ class Simulation:
 
         out_df = pd.DataFrame(results_np, columns=columns)
 
-        out_df.to_hdf(self.output_path, 'hdfkey')
+        out_df.to_hdf(self.output_path, "hdfkey")
 
     def _run_param_set(self, param_set):
         run_results = []
@@ -107,9 +128,9 @@ class Simulation:
             parameter_set=param_set,
             repeats=self.repeats,
             max_iterations=self.max_iterations,
-            goal_dist=np.average([s['goal_dist'] for s in run_results], axis=0),
-            parent_tps=np.average([s['parent'] for s in run_results], axis=0),
-            infant_tps=np.average([s['infant'] for s in run_results], axis=0)
+            goal_dist=np.average([s["goal_dist"] for s in run_results], axis=0),
+            parent_tps=np.average([s["parent"] for s in run_results], axis=0),
+            infant_tps=np.average([s["infant"] for s in run_results], axis=0),
         )
 
     def _single_run_param_set(self, param_set):
@@ -122,7 +143,7 @@ class Simulation:
             goal_dist.append(model.get_middle_dist())
 
         return {
-            'goal_dist': goal_dist,
-            'parent': model.parent.satisfaction,
-            'infant': model.infant.satisfaction
+            "goal_dist": goal_dist,
+            "parent": model.parent.satisfaction,
+            "infant": model.infant.satisfaction,
         }

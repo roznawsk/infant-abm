@@ -68,7 +68,7 @@ class ToddlerABM(mesa.Model):
         for i in range(self.initial_bricks):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+            color = "#" + "".join([random.choice("0123456789ABCDEF") for j in range(6)])
 
             brick = LegoBrick(self.next_id(), (x, y), self, color)
             self.grid.place_agent(brick, (x, y))
@@ -90,7 +90,6 @@ class ToddlerABM(mesa.Model):
         self.datacollector.collect(self)
 
     def run_model(self, step_count=200):
-
         # if self.verbose:
         #     print("Initial number wolves: ", self.schedule.get_type_count(Wolf))
         #     print("Initial number sheep: ", self.schedule.get_type_count(Sheep))

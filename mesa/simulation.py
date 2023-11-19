@@ -1,120 +1,149 @@
-import mesa
+from dataclasses import dataclass
 
-import itertools
+import multiprocessing
+import os
 import numpy as np
 import pandas as pd
-import time
-import multiprocessing
 import tqdm
 
-from matplotlib import pyplot as plt
 
 from infant_abm.model import InfantModel
+from infant_abm.utils import moving_average
 
 
-def single_run_param_set(param_set):
-    model = InfantModel(**param_set['model_params'])
+@dataclass
+class RunResult:
+    parameter_set: dict
+    repeats: int
+    max_iterations: int
+    goal_dist: np.ndarray
+    parent_tps: np.ndarray
+    infant_tps: np.ndarray
 
-    goal_dist = []
+    def fitness(self, metric, goal_dist=None, average_steps=None):
+        if metric == "goal_dist":
+            try:
+                return np.where(self.goal_dist < goal_dist)[0][0]
+            except IndexError:
+                return np.NaN
 
-    for _ in range(param_set['max_iter']):
-        goal_dist.append(model.get_middle_dist())
+        elif metric == "parent_tps":
+            return moving_average(self.parent_tps, average_steps)[-1]
 
-        model.step()
+        elif metric == "infant_tps":
+            return moving_average(self.infant_tps, average_steps)[-1]
 
-    return {
-        'goal_dist': goal_dist,
-        'parent': model.parent.satisfaction,
-        'infant': model.infant.satisfaction
-    }
+    def get_columns(self):
+        return [
+            "width",
+            "height",
+            "speed",
+            "lego_count",
+            "responsiveness",
+            "relevance",
+            "precision",
+            "coordination",
+            "exploration",
+            "repeats",
+            "max_iter",
+            "goal_distance",
+            "parent_tps",
+            "infant_tps",
+        ]
+
+    def to_list(self):
+        return (
+            [
+                self.parameter_set["width"],
+                self.parameter_set["height"],
+                self.parameter_set["speed"],
+                self.parameter_set["lego_count"],
+                self.parameter_set["responsiveness"],
+                self.parameter_set["relevance"],
+            ]
+            + list(self.parameter_set["infant_params"].to_numpy())
+            + [
+                self.repeats,
+                self.max_iterations,
+                self.goal_dist,
+                self.parent_tps,
+                self.infant_tps,
+            ]
+        )
 
 
-def run_param_set(param_set):
-    run_results = []
+class Simulation:
+    def __init__(
+        self, model_param_sets, max_iterations, repeats, output_path=None, display=False
+    ):
+        self.parameter_sets = model_param_sets
 
-    for _ in range(param_set['repeats']):
-        run_results.append(single_run_param_set(param_set))
+        self.max_iterations: int = max_iterations
+        self.repeats: int = repeats
 
-    run_results = {
-        'goal_dist': np.average([s['goal_dist'] for s in run_results], axis=0),
-        'parent': np.average([s['parent'] for s in run_results], axis=0),
-        'infant': np.average([s['infant'] for s in run_results], axis=0)
-    }
+        self.display = display
 
-    return list(param_set['model_params'].values()) + [param_set['repeats'],
-                                                       param_set['max_iter']] + [run_results['goal_dist'],
-                                                                                 run_results['parent'],
-                                                                                 run_results['infant']]
+        if os.path.exists(output_path):
+            raise ValueError("Output path already exists")
 
+        self.output_path = output_path
 
-def perform_simulation(parameter_sets):
-    pool = multiprocessing.Pool()
-    result = []
+        self.results: list[RunResult] = None
 
-    for res in tqdm.tqdm(pool.imap_unordered(run_param_set, parameter_sets, chunksize=1), total=len(parameter_sets)):
-        result.append(res)
+    def run(self):
+        n_runs = len(self.parameter_sets)
 
-    results = pool.map(run_param_set, parameter_sets)
-    return results
+        file_size = 8 * self.max_iterations * 3 * n_runs / 1024 / 1024
+        if self.display:
+            print(f"Runs no: {n_runs}, estimated output size: {file_size:.2f}MB")
 
+        pool = multiprocessing.Pool()
+        results = []
 
-def get_model_param_sets(default_params, sim_params):
-    prec = np.linspace(20, 100, 2)
-    exp = np.linspace(0, 100, 2)
-    coord = np.linspace(0, 100, 2)
-    resp = np.linspace(0, 100, 1)
-    rel = np.linspace(0, 100, 1)
+        for res in tqdm.tqdm(
+            pool.imap(self._run_param_set, self.parameter_sets, chunksize=1),
+            total=len(self.parameter_sets),
+            disable=not self.display,
+        ):
+            results.append(res)
 
-    params = []
+        self.results = results
+        return self.results
 
-    for param_set in itertools.product(*[prec, exp, coord, resp, rel]):
-        p, e, c, rs, rl = param_set
+    def save(self):
+        columns = self.results[0].get_columns()
+        results_np = [r.to_list() for r in self.results]
 
-        param_dict = {
-            'precision': p,
-            'exploration': e,
-            'coordination': c,
-            'responsiveness': rs,
-            'relevance': rl
+        out_df = pd.DataFrame(results_np, columns=columns)
+
+        out_df.to_hdf(self.output_path, "hdfkey")
+
+    def _run_param_set(self, param_set):
+        run_results = []
+
+        for _ in range(self.repeats):
+            run_results.append(self._single_run_param_set(param_set))
+
+        return RunResult(
+            parameter_set=param_set,
+            repeats=self.repeats,
+            max_iterations=self.max_iterations,
+            goal_dist=np.average([s["goal_dist"] for s in run_results], axis=0),
+            parent_tps=np.average([s["parent"] for s in run_results], axis=0),
+            infant_tps=np.average([s["infant"] for s in run_results], axis=0),
+        )
+
+    def _single_run_param_set(self, param_set):
+        model = InfantModel(**param_set)
+
+        goal_dist = []
+
+        for _ in range(self.max_iterations):
+            model.step()
+            goal_dist.append(model.get_middle_dist())
+
+        return {
+            "goal_dist": goal_dist,
+            "parent": model.parent.satisfaction,
+            "infant": model.infant.satisfaction,
         }
-
-        params.append({'model_params': {**default_params, **param_dict}, **sim_params})
-
-    return params
-
-
-if __name__ == '__main__':
-    grid_size = 300
-    repeats = 10
-    max_iter = 5000
-
-    default_model_params = {
-        'width': grid_size,
-        'height': grid_size,
-        'speed': 2,
-        'lego_count': 4,
-        'precision': 50,
-        'exploration': 50,
-        'coordination': 50,
-        'responsiveness': 50,
-        'relevance': 50
-    }
-
-    columns = list(default_model_params.keys()) + ['repeats', 'max_iter', 'goal_distance',
-                                                   'parent_satisfaction', 'infant_satisfaction']
-
-    sim_params = {
-        'max_iter': max_iter,
-        'repeats': repeats
-    }
-
-    parameter_sets = get_model_param_sets(default_model_params, sim_params)
-    n_runs = len(parameter_sets)
-
-    file_size = 8 * max_iter * 3 * n_runs / 1024 / 1024
-    print(f'Runs no: {n_runs}, estimated file size: {file_size:.2f}MB')
-
-    result = perform_simulation(parameter_sets)
-    out_df = pd.DataFrame(result, columns=columns)
-
-    out_df.to_hdf('../results/test_run_temp.hdf', 'hdfkey')

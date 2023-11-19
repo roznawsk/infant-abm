@@ -27,7 +27,7 @@ class Toddler(RandomWalker):
         if self.brick is None and lego_brick:
             lego_brick = lego_brick[0]
 
-            print(f'removing agent {lego_brick}')
+            print(f"removing agent {lego_brick}")
             self.model.grid.remove_agent(lego_brick)
             self.brick = lego_brick
 
@@ -65,4 +65,4 @@ class LegoBrick(mesa.Agent):
         self.color = color
 
     def __repr__(self) -> str:
-        return f'Brick Object at {self.pos} with color {self.color}'
+        return f"Brick Object at {self.pos} with color {self.color}"

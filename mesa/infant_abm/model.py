@@ -1,20 +1,20 @@
 """
-Flockers
+Infant Model
 =============================================================
-A Mesa implementation of Craig Reynolds's Boids flocker model.
-Uses numpy arrays to represent vectors.
+A Mesa implementation of Infant ABM Model
 """
 
-import mesa
-import numpy as np
-import random
-
-
 from infant_abm.agents.infant import Infant
+from infant_abm.agents.infant import Params as InfantParams
+
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
 
-from infant_abm.utils import *
+from infant_abm.utils import get_toys
+
+import math
+import numpy as np
+import mesa
 
 
 class InfantModel(mesa.Model):
@@ -28,46 +28,53 @@ class InfantModel(mesa.Model):
         height,
         speed,
         lego_count,
-        exploration,
-        precision,
-        coordination,
         responsiveness,
         relevance,
-        average_over=300
+        visualization_average_steps=300,
+        exploration=None,
+        precision=None,
+        coordination=None,
+        infant_params=None,
     ):
         """
         Create a new Infant model.
 
         Args:
-            """
+        """
+
+        mesa.Model.__init__(self)
 
         self.lego_count = lego_count
         self.speed = speed
         self.parent_speed = 2 * speed
-        self.exploration = exploration / 100
-        self.precision = precision / 100
-        self.coordination = coordination / 100
+
         self.responsiveness = responsiveness / 100
         self.relevance = relevance / 100
 
-        self.average_over = average_over
+        if infant_params is None:
+            infant_params = InfantParams(
+                precision=precision / 100,
+                coordination=coordination / 100,
+                exploration=exploration / 100,
+            )
+
+        self.visualization_average_steps = visualization_average_steps
 
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
 
         self.datacollector = mesa.DataCollector(
             {
-                "Infant satisfaction": self.get_infant_satisfaction,
-                "Parent satisfaction": self.get_parent_satisfaction
+                "Infant TPS": self.get_infant_satisfaction,
+                "Parent TPS": self.get_parent_satisfaction
                 # "dist_middle": self.get_middle_dist,
-                # "dist_parent_infant": self.get_parent_infant_dist
             }
         )
 
-        self.make_agents()
+        self.make_agents(infant_params)
         self.running = True
 
-    def make_agents(self):
+    def make_agents(self, infant_params):
         """
         Create self.population agents, with random positions and starting headings.
         """
@@ -81,10 +88,7 @@ class InfantModel(mesa.Model):
             self.schedule.add(brick)
 
         parent = Parent(
-            model=self,
-            unique_id=self.lego_count + 1,
-            pos=pos,
-            speed=self.parent_speed
+            model=self, unique_id=self.lego_count + 1, pos=pos, speed=self.parent_speed
         )
         self.parent = parent
 
@@ -97,11 +101,13 @@ class InfantModel(mesa.Model):
         x = 0.5 * self.space.x_max
         y = 0.5 * self.space.y_max
         pos = np.array((x, y))
+
         infant = Infant(
             model=self,
             unique_id=self.lego_count,
             pos=pos,
-            speed=self.speed
+            speed=self.speed,
+            params=infant_params,
         )
         self.infant = infant
         self.space.place_agent(infant, pos)
@@ -113,10 +119,10 @@ class InfantModel(mesa.Model):
         self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):
-        return np.average(self.infant.satisfaction[-self.average_over:])
+        return np.average(self.infant.satisfaction[-self.visualization_average_steps :])
 
     def get_parent_satisfaction(self):
-        return np.average(self.parent.satisfaction[-self.average_over:])
+        return np.average(self.parent.satisfaction[-self.visualization_average_steps :])
 
     def get_middle_dist(self):
         middle_point = (self.parent.pos + self.infant.pos) / 2
@@ -124,6 +130,9 @@ class InfantModel(mesa.Model):
         total_dist = 0
         toys = get_toys(self)
         for toy in toys:
-            total_dist += calc_dist(middle_point, toy.pos)
+            total_dist += math.dist(middle_point, toy.pos)
 
         return total_dist / len(toys)
+
+    def get_dims(self):
+        return [self.space.width, self.space.height]

@@ -18,13 +18,7 @@ class Toy(mesa.Agent):
     any other Boid.
     """
 
-    def __init__(
-        self,
-        unique_id,
-        model,
-        pos,
-        color=None
-    ):
+    def __init__(self, unique_id, model, pos, color=None):
         """
         Create a new Boid flocker agent.
 
@@ -51,12 +45,11 @@ class Toy(mesa.Agent):
         pass
 
     def _deactivated_color(self):
-        color_rgb = self.color_activated.lstrip('#')
-        color_rgb = tuple(int(color_rgb[i:i+2], 16) for i in [0, 2, 4])
+        color_rgb = self.color_activated.lstrip("#")
+        color_rgb = tuple(int(color_rgb[i : i + 2], 16) for i in [0, 2, 4])
         color_rgb = tuple(c + 88 for c in color_rgb)
 
-        return '#' + ('%02x%02x%02x' % color_rgb)
+        return "#" + ("%02x%02x%02x" % color_rgb)
 
     def _random_color(self):
-        return "#"+''.join([random.choice('345')
-                            for j in range(6)])
+        return "#" + "".join([random.choice("345") for j in range(6)])

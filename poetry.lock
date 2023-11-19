@@ -353,6 +353,17 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
+name = "cloudpickle"
+version = "3.0.0"
+description = "Pickler class to extend the standard pickle.Pickler functionality"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "cloudpickle-3.0.0-py3-none-any.whl", hash = "sha256:246ee7d0c295602a036e86369c77fecda4ab17b506496730f2f576d9016fd9c7"},
+    {file = "cloudpickle-3.0.0.tar.gz", hash = "sha256:996d9a482c6fb4f33c1a35335cf8afd065d2a56e973270364840712d9131a882"},
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -1630,6 +1641,22 @@ files = [
 ]
 
 [[package]]
+name = "pygad"
+version = "3.2.0"
+description = "PyGAD: A Python Library for Building the Genetic Algorithm and Training Machine Learning Algoithms (Keras & PyTorch)."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pygad-3.2.0-py3-none-any.whl", hash = "sha256:7656b4ea4b3274ebdec2ae0fc23a8f405fa3da784bc44dd35689e069a837ac57"},
+    {file = "pygad-3.2.0.tar.gz", hash = "sha256:5bd4c70bc8c810c254ac145d3e4b1c0402f720ce2ce4a5e91be360c026644ea0"},
+]
+
+[package.dependencies]
+cloudpickle = "*"
+matplotlib = "*"
+numpy = "*"
+
+[[package]]
 name = "pygments"
 version = "2.17.1"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -2494,4 +2521,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "96639fb1c8e57dbfc158437a3840e778d9b045c0d671ac85253b99bf6b4907f0"
+content-hash = "f5a166e89fcc59b83e0a266d434dd5d1782b2683001b904fa47ccf433393ee5c"

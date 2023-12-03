@@ -15,6 +15,8 @@ pygad = "^3.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = {extras = ["jupyter"], version = "^23.11.0"}
+ipykernel = "^6.26.0"
+pip = "^23.3.1"
 
 [build-system]
 requires = ["poetry-core"]

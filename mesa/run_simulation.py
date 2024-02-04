@@ -31,7 +31,7 @@ def get_model_param_sets(default_params):
 
 if __name__ == "__main__":
     grid_size = 300
-    repeats = 10
+    repeats = 1
     max_iter = 5000
 
     output_path = "../results/test_run_temp.hdf"
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         "relevance": 50,
     }
 
-    parameter_sets = get_model_param_sets(default_model_params)
+    parameter_sets = [get_model_param_sets(default_model_params)[0]]
 
     simulation = Simulation(
         model_param_sets=parameter_sets,
@@ -57,5 +57,7 @@ if __name__ == "__main__":
         output_path=output_path,
         display=True,
     )
-    print(simulation.run())
+
+    results = simulation.run()
+    print(results)
     # simulation.save()

@@ -1,0 +1,4 @@
+mesa
+matplotlib
+numpy
+pandas

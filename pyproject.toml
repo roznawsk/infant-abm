@@ -17,6 +17,7 @@ pygad = "^3.2.0"
 black = {extras = ["jupyter"], version = "^23.11.0"}
 ipykernel = "^6.26.0"
 pip = "^23.3.1"
+ruff = "^0.2.0"
 
 [build-system]
 requires = ["poetry-core"]

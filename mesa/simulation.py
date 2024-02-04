@@ -83,7 +83,7 @@ class Simulation:
 
         self.display = display
 
-        if os.path.exists(output_path):
+        if output_path is not None and os.path.exists(output_path):
             raise ValueError("Output path already exists")
 
         self.output_path = output_path

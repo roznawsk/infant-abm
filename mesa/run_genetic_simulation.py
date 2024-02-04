@@ -20,13 +20,12 @@ def get_fitness(result):
 
 def fitness_func(_ga_instance, genotype, _solution_idx):
     parameter_set = {
-        "width": 300,
-        "height": 300,
-        "speed": 2,
-        "lego_count": 4,
+        "toy_count": 4,
         "responsiveness": 50,
         "relevance": 50,
-        "infant_params": InfantParams(precision=genotype[0], coordination=genotype[1], exploration=genotype[2])
+        "infant_params": InfantParams(
+            precision=genotype[0], coordination=genotype[1], exploration=genotype[2]
+        ),
     }
 
     simulation = Simulation(
@@ -42,7 +41,7 @@ def fitness_func(_ga_instance, genotype, _solution_idx):
     return 1 / fitness
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     fitness_function = fitness_func
 
     num_generations = 20
@@ -86,7 +85,7 @@ if __name__ == '__main__':
         parallel_processing=20,
         save_solutions=False,
         save_best_solutions=True,
-        suppress_warnings=True
+        suppress_warnings=True,
     )
 
     ga_instance.run()

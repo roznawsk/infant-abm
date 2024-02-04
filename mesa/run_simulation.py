@@ -30,17 +30,13 @@ def get_model_param_sets(default_params):
 
 
 if __name__ == "__main__":
-    grid_size = 300
     repeats = 1
     max_iter = 5000
 
     output_path = "../results/test_run_temp.hdf"
 
     default_model_params = {
-        "width": grid_size,
-        "height": grid_size,
-        "speed": 2,
-        "lego_count": 4,
+        "toy_count": 4,
         # 'precision': 50,
         # 'exploration': 50,
         # 'coordination': 50,

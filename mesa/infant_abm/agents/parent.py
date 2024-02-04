@@ -16,7 +16,7 @@ class Action(Enum):
 class Parent(mesa.Agent):
     """ """
 
-    def __init__(self, unique_id, model, pos, speed):
+    def __init__(self, unique_id, model, pos):
         """
         Create a new Boid flocker agent.
 
@@ -24,7 +24,7 @@ class Parent(mesa.Agent):
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
-        self.speed = speed
+        self.speed = 5
 
         self.velocity = None
 

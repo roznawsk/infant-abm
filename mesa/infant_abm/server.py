@@ -6,6 +6,8 @@ from infant_abm.agents.toy import Toy
 
 import mesa
 
+GRID_SIZE = 100
+
 
 def portrayal(agent):
     if type(agent) is Infant:
@@ -17,11 +19,8 @@ def portrayal(agent):
         }
 
     elif type(agent) is Toy:
-        color = None
-        if agent.model.infant.target == agent:
-            color = agent.color_activated
-        else:
-            color = agent.color_deactivated
+        color = agent.color
+
         return {
             "Shape": "rect",
             "w": 0.025,
@@ -46,22 +45,15 @@ chart_element = mesa.visualization.ChartModule(
     [
         {"Label": "Infant TPS", "Color": "#991144"},
         {"Label": "Parent TPS", "Color": "#441199"},
-        # {"Label": "dist_middle", "Color": "#991144"},
-        # {"Label": "dist_parent_infant", "Color": "#441199"},
     ]
 )
 
-grid_size = 100
-
 model_params = {
-    "width": grid_size,
-    "height": grid_size,
-    "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 15),
-    "precision": mesa.visualization.Slider("Infant Precision", 50, 0, 100),
-    "exploration": mesa.visualization.Slider("Infant Exploration", 50, 0, 100),
-    "coordination": mesa.visualization.Slider("Infant Coordination", 50, 0, 100),
+    "width": GRID_SIZE,
+    "height": GRID_SIZE,
+    "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 10),
+    "exploration": mesa.visualization.Slider("Exploration / Exploatation", 50, 0, 100),
     "responsiveness": mesa.visualization.Slider("Parent responsiveness", 50, 0, 100),
-    "relevance": mesa.visualization.Slider("Parent relevance", 50, 0, 100),
 }
 
 server = mesa.visualization.ModularServer(

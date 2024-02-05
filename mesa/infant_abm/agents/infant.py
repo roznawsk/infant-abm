@@ -85,8 +85,10 @@ class Infant(mesa.Agent):
         throw_direction = None
 
         if self.params.exploration < np.random.rand():
+            parent_dist = math.dist(self.model.parent.pos, self.pos)
+            throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
-                calc_norm_vector(self.pos, self.model.parent.pos) * self.toy_throw_range
+                calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
             )
         else:
             throw_direction = np.random.rand(2)

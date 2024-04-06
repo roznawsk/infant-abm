@@ -66,7 +66,7 @@ class InfantModel(mesa.Model):
         self.datacollector = mesa.DataCollector(
             {
                 "Infant TPS": self.get_infant_satisfaction,
-                "Parent TPS": self.get_parent_satisfaction
+                "Parent TPS": self.get_parent_satisfaction,
                 # "dist_middle": self.get_middle_dist,
             }
         )

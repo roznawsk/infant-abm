@@ -2,7 +2,6 @@ import numpy as np
 import itertools
 import time
 import copy
-import tqdm
 
 from simulation import Simulation
 from infant_abm.agents.infant import Params as InfantParams

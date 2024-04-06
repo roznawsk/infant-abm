@@ -20,8 +20,7 @@ if __name__ == "__main__":
     print(all_solutions)
 
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
-    print("Parameters of the best solution : {solution}".format(
-        solution=solution))
+    print("Parameters of the best solution : {solution}".format(solution=solution))
     print(
         "Fitness value of the best solution = {solution_fitness}".format(
             solution_fitness=solution_fitness
@@ -29,10 +28,10 @@ if __name__ == "__main__":
     )
 
     prediction = InfantParams(
-        precision=solution[0], coordination=solution[1], exploration=solution[2])
+        precision=solution[0], coordination=solution[1], exploration=solution[2]
+    )
     print(
         "Predicted output based on the best solution : {prediction} with fitness {fitness}".format(
-            prediction=prediction,
-            fitness=1 / solution_fitness
+            prediction=prediction, fitness=1 / solution_fitness
         )
     )

@@ -28,7 +28,6 @@ class InfantModel(mesa.Model):
         height,
         toy_count,
         responsiveness,
-        relevance,
         visualization_average_steps=300,
         exploration=None,
         precision=None,
@@ -44,14 +43,14 @@ class InfantModel(mesa.Model):
         mesa.Model.__init__(self)
 
         self.toy_count = toy_count
+        self.toys = []
 
         self.responsiveness = responsiveness / 100
-        self.relevance = relevance / 100
 
         if infant_params is None:
             infant_params = InfantParams(
-                precision=precision / 100,
-                coordination=coordination / 100,
+                # precision=precision / 100,
+                # coordination=coordination / 100,
                 exploration=exploration / 100,
             )
 
@@ -80,9 +79,10 @@ class InfantModel(mesa.Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
 
-            brick = Toy(i, self, pos)
-            self.space.place_agent(brick, pos)
-            self.schedule.add(brick)
+            toy = Toy(i, self, pos)
+            self.space.place_agent(toy, pos)
+            self.toys.append(toy)
+            self.schedule.add(toy)
 
         parent = Parent(
             model=self,

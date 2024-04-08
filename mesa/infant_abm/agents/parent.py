@@ -28,8 +28,8 @@ class Parent(mesa.Agent):
 
         self.velocity = None
 
-        self.toy_interaction_range = 20
-        self.toy_throw_range = 40
+        self.toy_interaction_range = 10
+        self.toy_throw_range = 20
         self.target = None
         self.bonus_target = None
 
@@ -83,7 +83,7 @@ class Parent(mesa.Agent):
 
     def respond(self, toy):
         if self.model.responsiveness > np.random.rand():
-            if self.model.relevance > np.random.rand():
+            if 0.5 > np.random.rand():
                 self._respond_relevant(toy)
             else:
                 self._respond_irrelevant()
@@ -95,10 +95,7 @@ class Parent(mesa.Agent):
     def _respond_irrelevant(self):
         toys = get_toys(self.model, self.pos)
 
-        probabilities = np.array(
-            [(1 / (math.dist(toy.pos, self.pos) + 0.01)) for toy in toys]
-        )
-
+        probabilities = np.array([1 for _ in toys])
         probabilities = probabilities / probabilities.sum()
 
         [target] = np.random.choice(toys, size=1, p=probabilities)

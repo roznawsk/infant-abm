@@ -10,9 +10,9 @@ import mesa
 def portrayal(agent):
     if type(agent) is Infant:
         return {
-            "Shape": "infant_abm/resources/infant_2.png",
+            "Shape": "infant_abm/resources/stickfigure.png",
             "Layer": 1,
-            "w": 50,
+            "w": 24,
             "h": 50,
         }
 
@@ -33,10 +33,10 @@ def portrayal(agent):
 
     elif type(agent) is Parent:
         return {
-            "Shape": "infant_abm/resources/parent_2.png",
+            "Shape": "infant_abm/resources/stickfigure.png",
             "Layer": 1,
-            "w": 50,
-            "h": 50,
+            "w": 32,
+            "h": 68,
         }
 
 
@@ -51,14 +51,12 @@ chart_element = mesa.visualization.ChartModule(
     ]
 )
 
-grid_size = 300
+grid_size = 100
 
 model_params = {
-    "title": mesa.visualization.StaticText(f"Grid size: {grid_size}"),
     "width": grid_size,
     "height": grid_size,
-    "speed": 2,
-    "lego_count": mesa.visualization.Slider("Brick count", 5, 1, 15),
+    "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 15),
     "precision": mesa.visualization.Slider("Infant Precision", 50, 0, 100),
     "exploration": mesa.visualization.Slider("Infant Exploration", 50, 0, 100),
     "coordination": mesa.visualization.Slider("Infant Coordination", 50, 0, 100),

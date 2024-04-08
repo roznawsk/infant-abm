@@ -37,8 +37,7 @@ class RunResult:
         return [
             "width",
             "height",
-            "speed",
-            "lego_count",
+            "toy_count",
             "responsiveness",
             "relevance",
             "precision",
@@ -56,8 +55,7 @@ class RunResult:
             [
                 self.parameter_set["width"],
                 self.parameter_set["height"],
-                self.parameter_set["speed"],
-                self.parameter_set["lego_count"],
+                self.parameter_set["toy_count"],
                 self.parameter_set["responsiveness"],
                 self.parameter_set["relevance"],
             ]

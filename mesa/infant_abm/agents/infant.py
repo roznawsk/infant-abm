@@ -34,10 +34,10 @@ class Params:
 
 
 class Infant(mesa.Agent):
-    def __init__(self, unique_id, model, pos, speed, params: Params):
+    def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
-        self.speed = speed
+        self.speed = 1
 
         self.params: Params = params
 

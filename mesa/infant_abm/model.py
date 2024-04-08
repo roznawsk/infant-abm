@@ -26,8 +26,7 @@ class InfantModel(mesa.Model):
         self,
         width,
         height,
-        speed,
-        lego_count,
+        toy_count,
         responsiveness,
         relevance,
         visualization_average_steps=300,
@@ -44,9 +43,7 @@ class InfantModel(mesa.Model):
 
         mesa.Model.__init__(self)
 
-        self.lego_count = lego_count
-        self.speed = speed
-        self.parent_speed = 2 * speed
+        self.toy_count = toy_count
 
         self.responsiveness = responsiveness / 100
         self.relevance = relevance / 100
@@ -78,7 +75,7 @@ class InfantModel(mesa.Model):
         """
         Create self.population agents, with random positions and starting headings.
         """
-        for i in range(self.lego_count):
+        for i in range(self.toy_count):
             x = self.random.random() * self.space.x_max
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
@@ -88,7 +85,9 @@ class InfantModel(mesa.Model):
             self.schedule.add(brick)
 
         parent = Parent(
-            model=self, unique_id=self.lego_count + 1, pos=pos, speed=self.parent_speed
+            model=self,
+            unique_id=self.toy_count + 1,
+            pos=pos,
         )
         self.parent = parent
 
@@ -104,9 +103,8 @@ class InfantModel(mesa.Model):
 
         infant = Infant(
             model=self,
-            unique_id=self.lego_count,
+            unique_id=self.toy_count,
             pos=pos,
-            speed=self.speed,
             params=infant_params,
         )
         self.infant = infant

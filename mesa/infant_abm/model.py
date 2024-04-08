@@ -112,6 +112,10 @@ class InfantModel(mesa.Model):
         self.schedule.add(infant)
 
     def step(self):
+        if self.get_middle_dist() < 10:
+            print("target achieved")
+            return
+        
         self.schedule.step()
 
         self.datacollector.collect(self)

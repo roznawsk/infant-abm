@@ -4,6 +4,7 @@ Infant Model
 A Mesa implementation of Infant ABM Model
 """
 
+import math
 from infant_abm.agents.infant import Infant
 from infant_abm.agents.infant import Params as InfantParams
 
@@ -78,7 +79,6 @@ class InfantModel(mesa.Model):
 
         for i in range(self.toy_count):
             toy_pos = Position.random()
-            print(f"toy pos, {toy_pos}")
             toy = Toy(i, self, toy_pos)
             self.space.place_agent(toy, toy.pos)
             self.toys.append(toy)
@@ -107,13 +107,6 @@ class InfantModel(mesa.Model):
         self.space.place_agent(infant, infant.pos)
         self.schedule.add(infant)
 
-        print("all agents")
-        agents = self.schedule.agents
-        agents = self.space.get_neighbors((0, 0), 1000)
-        for a in agents:
-            print(a.pos)
-            print(type(a.pos))
-
     def step(self):
         if self.get_middle_dist() < 10:
             print("target achieved")
@@ -135,7 +128,7 @@ class InfantModel(mesa.Model):
         total_dist = 0
         toys = self.get_toys()
         for toy in toys:
-            total_dist += Position.dist(middle_point, toy.pos)
+            total_dist += math.dist(middle_point, toy.pos)
 
         return total_dist / len(toys)
 

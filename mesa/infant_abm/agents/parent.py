@@ -62,9 +62,9 @@ class Parent(Agent):
         self.move_agent(new_pos)
 
     def _step_pass_toy(self):
-        throw_direction = self.pos.calc_norm_vector(self.model.infant.pos) * min(
-            self.toy_throw_range, math.dist(self.pos, self.model.infant.pos)
-        )
+        throw_direction = Position.calc_norm_vector(
+            self.pos, self.model.infant.pos
+        ) * min(self.toy_throw_range, math.dist(self.pos, self.model.infant.pos))
 
         new_pos = self.pos + throw_direction
         self.target.move_agent(new_pos)
@@ -88,7 +88,7 @@ class Parent(Agent):
         self.target = toy
 
     def _respond_irrelevant(self):
-        toys = self.model.get_toys(self.model, self.pos)
+        toys = self.model.get_toys()
 
         probabilities = np.array([1 for _ in toys])
         probabilities = probabilities / probabilities.sum()

@@ -1,5 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
+import math
 
 from infant_abm.agents.agent import Agent
 
@@ -66,7 +67,7 @@ class Infant(Agent):
             self._step_toy_interaction()
 
     def _step_crawl(self):
-        if Position.dist(self.pos, self.target.pos) < self.toy_interaction_range:
+        if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
             self.next_action = Action.INTERACT_WITH_TOY
             return
 
@@ -83,7 +84,7 @@ class Infant(Agent):
         throw_direction = None
 
         if self.params.exploration < np.random.rand():
-            parent_dist = Position.dist(self.pos, self.model.parent.pos)
+            parent_dist = math.dist(self.pos, self.model.parent.pos)
             throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
                 Position.calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
@@ -94,8 +95,8 @@ class Infant(Agent):
                 throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
             )
 
-        new_pos = self.pos + throw_direction
-        self.move_agent(new_pos)
+        new_pos = self.target.pos + throw_direction
+        self.target.move_agent(new_pos)
 
         self.model.parent.respond(self.target)
 

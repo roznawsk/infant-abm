@@ -1,7 +1,5 @@
 import random
 import numpy as np
-import math
-
 
 class Position:
     x_max = None
@@ -13,10 +11,6 @@ class Position:
         y = random.random() * Position.y_max
 
         return np.array([x, y])
-
-    @staticmethod
-    def dist(first, second):
-        return math.dist(first, second)
 
     @staticmethod
     def calc_norm_vector(first, second) -> np.ndarray:

@@ -1,11 +1,11 @@
 from enum import Enum
 from dataclasses import dataclass
-import math
 
-from infant_abm.utils import get_toys, calc_norm_vector, correct_out_of_bounds
+from infant_abm.agents.agent import Agent
 
 import numpy as np
-import mesa
+
+from infant_abm.agents.position import Position
 
 
 class Action(Enum):
@@ -32,10 +32,10 @@ class Params:
     #     return Params.from_numpy(np.random.random(3))
 
 
-class Infant(mesa.Agent):
+class Infant(Agent):
     def __init__(self, unique_id, model, pos, params: Params):
-        super().__init__(unique_id, model)
-        self.pos = np.array(pos)
+        super().__init__(unique_id, model, pos)
+
         self.speed = 1
 
         self.params: Params = params
@@ -66,7 +66,7 @@ class Infant(mesa.Agent):
             self._step_toy_interaction()
 
     def _step_crawl(self):
-        if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
+        if Position.dist(self.pos, self.target.pos) < self.toy_interaction_range:
             self.next_action = Action.INTERACT_WITH_TOY
             return
 
@@ -75,20 +75,18 @@ class Infant(mesa.Agent):
             self.next_action = Action.LOOK_FOR_TOY
             return
 
-        self.velocity = calc_norm_vector(self.pos, self.target.pos)
+        self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
-        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
-
-        self.model.space.move_agent(self, new_pos)
+        self.move_agent(new_pos)
 
     def _step_toy_interaction(self):
         throw_direction = None
 
         if self.params.exploration < np.random.rand():
-            parent_dist = math.dist(self.model.parent.pos, self.pos)
+            parent_dist = Position.dist(self.pos, self.model.parent.pos)
             throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
-                calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
+                Position.calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
             )
         else:
             throw_direction = np.random.rand(2)
@@ -97,9 +95,7 @@ class Infant(mesa.Agent):
             )
 
         new_pos = self.pos + throw_direction
-        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
-
-        self.model.space.move_agent(self.target, new_pos)
+        self.move_agent(new_pos)
 
         self.model.parent.respond(self.target)
 
@@ -113,13 +109,13 @@ class Infant(mesa.Agent):
         self.next_action = Action.LOOK_FOR_TOY
 
     def _step_change_target(self):
-        toys = get_toys(self.model, self.pos)
+        toys = self.model.get_toys()
 
         probabilities = np.array([self._toy_probability(toy) for toy in toys])
         probabilities /= probabilities.sum()
 
         [target] = np.random.choice(toys, size=1, p=probabilities)
-        self.velocity = calc_norm_vector(self.pos, target.pos)
+        self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
 
         self.next_action = Action.CRAWL

@@ -10,11 +10,10 @@ from infant_abm.agents.infant import Params as InfantParams
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
 
-from infant_abm.utils import get_toys
-
-import math
 import numpy as np
 import mesa
+
+from infant_abm.agents.position import Position
 
 
 class InfantModel(mesa.Model):
@@ -58,6 +57,8 @@ class InfantModel(mesa.Model):
 
         self.schedule = mesa.time.RandomActivation(self)
         self.space = mesa.space.ContinuousSpace(width, height, False)
+        Position.x_max = width
+        Position.y_max = height
 
         self.datacollector = mesa.DataCollector(
             {
@@ -74,48 +75,50 @@ class InfantModel(mesa.Model):
         """
         Create self.population agents, with random positions and starting headings.
         """
-        for i in range(self.toy_count):
-            x = self.random.random() * self.space.x_max
-            y = self.random.random() * self.space.y_max
-            pos = np.array((x, y))
 
-            toy = Toy(i, self, pos)
-            self.space.place_agent(toy, pos)
+        for i in range(self.toy_count):
+            toy_pos = Position.random()
+            print(f"toy pos, {toy_pos}")
+            toy = Toy(i, self, toy_pos)
+            self.space.place_agent(toy, toy.pos)
             self.toys.append(toy)
             self.schedule.add(toy)
 
         parent = Parent(
             model=self,
             unique_id=self.toy_count + 1,
-            pos=pos,
+            pos=Position.random(),
         )
         self.parent = parent
 
-        x = self.random.random() * self.space.x_max
-        y = self.random.random() * self.space.y_max
-        pos = np.array((x, y))
-        self.space.place_agent(parent, pos)
+        self.space.place_agent(parent, parent.pos)
         self.schedule.add(parent)
 
-        x = 0.5 * self.space.x_max
-        y = 0.5 * self.space.y_max
-        pos = np.array((x, y))
+        x = 0.5 * Position.x_max
+        y = 0.5 * Position.y_max
 
         infant = Infant(
             model=self,
             unique_id=self.toy_count,
-            pos=pos,
+            pos=np.array([x, y]),
             params=infant_params,
         )
         self.infant = infant
-        self.space.place_agent(infant, pos)
+        self.space.place_agent(infant, infant.pos)
         self.schedule.add(infant)
+
+        print("all agents")
+        agents = self.schedule.agents
+        agents = self.space.get_neighbors((0, 0), 1000)
+        for a in agents:
+            print(a.pos)
+            print(type(a.pos))
 
     def step(self):
         if self.get_middle_dist() < 10:
             print("target achieved")
             return
-        
+
         self.schedule.step()
 
         self.datacollector.collect(self)
@@ -130,11 +133,18 @@ class InfantModel(mesa.Model):
         middle_point = (self.parent.pos + self.infant.pos) / 2
 
         total_dist = 0
-        toys = get_toys(self)
+        toys = self.get_toys()
         for toy in toys:
-            total_dist += math.dist(middle_point, toy.pos)
+            total_dist += Position.dist(middle_point, toy.pos)
 
         return total_dist / len(toys)
 
-    def get_dims(self):
-        return [self.space.width, self.space.height]
+    def get_toys(self, pos=None, range=None):
+        toys = []
+
+        if pos is None or range is None:
+            toys = self.schedule.agents
+        else:
+            toys = self.space.get_neighbors(pos, range, False)
+
+        return [a for a in toys if type(a) == Toy]

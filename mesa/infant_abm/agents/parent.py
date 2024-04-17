@@ -1,10 +1,10 @@
 from enum import Enum
 
-from infant_abm.utils import get_toys, calc_norm_vector, correct_out_of_bounds
-
 import numpy as np
 import math
-import mesa
+
+from infant_abm.agents.agent import Agent
+from infant_abm.agents.position import Position
 
 
 class Action(Enum):
@@ -13,7 +13,7 @@ class Action(Enum):
     PASS_TOY = 3
 
 
-class Parent(mesa.Agent):
+class Parent(Agent):
     """ """
 
     def __init__(self, unique_id, model, pos):
@@ -22,8 +22,7 @@ class Parent(mesa.Agent):
 
         Args:
         """
-        super().__init__(unique_id, model)
-        self.pos = np.array(pos)
+        super().__init__(unique_id, model, pos)
         self.speed = 5
 
         self.velocity = None
@@ -52,27 +51,23 @@ class Parent(mesa.Agent):
             self._step_pass_toy()
 
     def _step_fetch_toy(self):
-        toys = get_toys(self.model, self.pos, self.toy_interaction_range)
+        toys = self.model.get_toys(self.pos, self.toy_interaction_range)
 
         if self.target in toys:
             self.next_action = Action.PASS_TOY
             return
 
-        self.velocity = calc_norm_vector(self.pos, self.target.pos)
+        self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
-        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
-
-        self.model.space.move_agent(self, new_pos)
+        self.move_agent(new_pos)
 
     def _step_pass_toy(self):
-        throw_direction = calc_norm_vector(self.pos, self.model.infant.pos) * min(
+        throw_direction = self.pos.calc_norm_vector(self.model.infant.pos) * min(
             self.toy_throw_range, math.dist(self.pos, self.model.infant.pos)
         )
 
         new_pos = self.pos + throw_direction
-        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
-
-        self.model.space.move_agent(self.target, new_pos)
+        self.target.move_agent(new_pos)
 
         self.model.infant.bonus_target = self.target
         if self.target == self.bonus_target:
@@ -93,7 +88,7 @@ class Parent(mesa.Agent):
         self.target = toy
 
     def _respond_irrelevant(self):
-        toys = get_toys(self.model, self.pos)
+        toys = self.model.get_toys(self.model, self.pos)
 
         probabilities = np.array([1 for _ in toys])
         probabilities = probabilities / probabilities.sum()

@@ -1,9 +1,7 @@
-import mesa
-import random
-import numpy as np
+from infant_abm.agents.agent import Agent
 
 
-class Toy(mesa.Agent):
+class Toy(Agent):
     """
     A Boid-style flocker agent.
 
@@ -25,8 +23,7 @@ class Toy(mesa.Agent):
         Args:
         """
 
-        super().__init__(unique_id, model)
-        self.pos = np.array(pos)
+        super().__init__(unique_id, model, pos)
 
         # if color is None:
         #     color = self._random_color()

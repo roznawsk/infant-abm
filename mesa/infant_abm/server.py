@@ -10,18 +10,15 @@ import mesa
 def portrayal(agent):
     if type(agent) is Infant:
         return {
-            "Shape": "infant_abm/resources/infant_2.png",
+            "Shape": "infant_abm/resources/stickfigure.png",
             "Layer": 1,
-            "w": 50,
+            "w": 24,
             "h": 50,
         }
 
     elif type(agent) is Toy:
-        color = None
-        if agent.model.infant.target == agent:
-            color = agent.color_activated
-        else:
-            color = agent.color_deactivated
+        color = agent.color
+
         return {
             "Shape": "rect",
             "w": 0.025,
@@ -33,39 +30,22 @@ def portrayal(agent):
 
     elif type(agent) is Parent:
         return {
-            "Shape": "infant_abm/resources/parent_2.png",
+            "Shape": "infant_abm/resources/stickfigure.png",
             "Layer": 1,
-            "w": 50,
-            "h": 50,
+            "w": 32,
+            "h": 68,
         }
 
 
 model_canvas = Canvas(portrayal, 900, 900)
 
-chart_element = mesa.visualization.ChartModule(
-    [
-        {"Label": "Infant TPS", "Color": "#991144"},
-        {"Label": "Parent TPS", "Color": "#441199"},
-        # {"Label": "dist_middle", "Color": "#991144"},
-        # {"Label": "dist_parent_infant", "Color": "#441199"},
-    ]
-)
-
-grid_size = 300
-
 model_params = {
-    "title": mesa.visualization.StaticText(f"Grid size: {grid_size}"),
-    "width": grid_size,
-    "height": grid_size,
-    "speed": 2,
-    "lego_count": mesa.visualization.Slider("Brick count", 5, 1, 15),
-    "precision": mesa.visualization.Slider("Infant Precision", 50, 0, 100),
-    "exploration": mesa.visualization.Slider("Infant Exploration", 50, 0, 100),
-    "coordination": mesa.visualization.Slider("Infant Coordination", 50, 0, 100),
-    "responsiveness": mesa.visualization.Slider("Parent responsiveness", 50, 0, 100),
-    "relevance": mesa.visualization.Slider("Parent relevance", 50, 0, 100),
+    # "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 10),
+    "perception": mesa.visualization.Slider("Perception", 50, 0, 100),
+    "persistence": mesa.visualization.Slider("Persistence", 50, 0, 100),
+    "coordination": mesa.visualization.Slider("Coordination", 50, 0, 100),
 }
 
 server = mesa.visualization.ModularServer(
-    InfantModel, [model_canvas, chart_element], "Boids", model_params
+    InfantModel, [model_canvas], "Infant", model_params
 )

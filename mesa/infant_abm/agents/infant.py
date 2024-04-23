@@ -69,7 +69,6 @@ class Infant(Agent):
             return
 
         if self._gets_distracted():
-            print("dstracetd")
             self.target = None
             self.next_action = Action.LOOK_FOR_TOY
             return

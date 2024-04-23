@@ -48,8 +48,6 @@ class InfantModel(mesa.Model):
                 perception, persistence, coordination
             )
 
-            print(f"params from slider {infant_params}")
-
         self.next_agent_id = 0
         self.toys = []
 

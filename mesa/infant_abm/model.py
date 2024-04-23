@@ -33,6 +33,7 @@ class InfantModel(mesa.Model):
         perception=None,
         persistence=None,
         coordination=None,
+        explore_exploit_ratio=None,
     ):
         """
         Create a new Infant model.
@@ -47,8 +48,6 @@ class InfantModel(mesa.Model):
                 perception, persistence, coordination
             )
 
-            print(f"params from slider {infant_params}")
-
         self.next_agent_id = 0
         self.toys = []
 
@@ -60,6 +59,9 @@ class InfantModel(mesa.Model):
         Position.y_max = self.HEIGHT
 
         self.make_agents(infant_params)
+
+        self.infant.explore_exploit_ratio = explore_exploit_ratio / 100
+
         self.running = True
 
     def make_agents(self, infant_params):

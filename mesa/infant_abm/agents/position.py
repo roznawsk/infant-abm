@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+
 class Position:
     x_max = None
     y_max = None

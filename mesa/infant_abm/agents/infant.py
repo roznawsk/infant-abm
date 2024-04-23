@@ -17,20 +17,23 @@ class Action(Enum):
 
 @dataclass
 class Params:
-    exploration: float
+    perception: float
+    persistence: float
+    coordination: float
 
-    # TODO: implement convertion to array
-    # def to_numpy(self):
-    #     return np.array([self.precision, self.coordination, self.exploration])
+    @staticmethod
+    def from_array(array):
+        p, c, e = array
+        return Params(perception=p, persistence=c, coordination=e)
 
-    # @staticmethod
-    # def from_numpy(nd_array):
-    #     p, c, e = nd_array
-    #     return Params(precision=p, coordination=c, exploration=e)
+    @staticmethod
+    def from_slider(perception, persistence, coordination):
+        return Params.from_array(
+            np.array([perception, persistence, coordination]) / 100
+        )
 
-    # @staticmethod
-    # def random():
-    #     return Params.from_numpy(np.random.random(3))
+    def to_array(self):
+        return np.array([self.perception, self.persistence, self.coordination])
 
 
 class Infant(Agent):
@@ -83,7 +86,7 @@ class Infant(Agent):
     def _step_toy_interaction(self):
         throw_direction = None
 
-        if self.params.exploration < np.random.rand():
+        if self.params.coordination < np.random.rand():
             parent_dist = math.dist(self.pos, self.model.parent.pos)
             throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
@@ -122,11 +125,9 @@ class Infant(Agent):
         self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
-        return np.power(
-            (toy.times_interacted_with + 1), 1 - 2 * self.params.exploration
-        )
+        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.params.perception)
 
     def _gets_distracted(self):
-        if self.params.exploration == 1:
-            return True
-        return (1 - self.params.exploration) ** (1 / 25) < np.random.rand()
+        if self.params.persistence == 1:
+            return False
+        return (1 - self.params.persistence) ** (1 / 25) < np.random.rand()

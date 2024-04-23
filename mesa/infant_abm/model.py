@@ -22,17 +22,17 @@ class InfantModel(mesa.Model):
     Flocker model class. Handles agent creation, placement and scheduling.
     """
 
+    WIDTH = 100
+    HEIGHT = 100
+    responsiveness = 0.5
+
     def __init__(
         self,
-        width,
-        height,
-        toy_count,
-        responsiveness,
         visualization_average_steps=300,
-        exploration=None,
-        precision=None,
-        coordination=None,
         infant_params=None,
+        perception=None,
+        persistence=None,
+        coordination=None,
     ):
         """
         Create a new Infant model.
@@ -42,32 +42,22 @@ class InfantModel(mesa.Model):
 
         mesa.Model.__init__(self)
 
-        self.toy_count = toy_count
-        self.toys = []
-
-        self.responsiveness = responsiveness / 100
-
         if infant_params is None:
-            infant_params = InfantParams(
-                # precision=precision / 100,
-                # coordination=coordination / 100,
-                exploration=exploration / 100,
+            infant_params = InfantParams.from_slider(
+                perception, persistence, coordination
             )
+
+            print(f"params from slider {infant_params}")
+
+        self.next_agent_id = 0
+        self.toys = []
 
         self.visualization_average_steps = visualization_average_steps
 
         self.schedule = mesa.time.RandomActivation(self)
-        self.space = mesa.space.ContinuousSpace(width, height, False)
-        Position.x_max = width
-        Position.y_max = height
-
-        self.datacollector = mesa.DataCollector(
-            {
-                "Infant TPS": self.get_infant_satisfaction,
-                "Parent TPS": self.get_parent_satisfaction,
-                # "dist_middle": self.get_middle_dist,
-            }
-        )
+        self.space = mesa.space.ContinuousSpace(self.WIDTH, self.HEIGHT, False)
+        Position.x_max = self.WIDTH
+        Position.y_max = self.HEIGHT
 
         self.make_agents(infant_params)
         self.running = True
@@ -77,16 +67,11 @@ class InfantModel(mesa.Model):
         Create self.population agents, with random positions and starting headings.
         """
 
-        for i in range(self.toy_count):
-            toy_pos = Position.random()
-            toy = Toy(i, self, toy_pos)
-            self.space.place_agent(toy, toy.pos)
-            self.toys.append(toy)
-            self.schedule.add(toy)
+        self._make_toys()
 
         parent = Parent(
             model=self,
-            unique_id=self.toy_count + 1,
+            unique_id=self._next_agent_id(),
             pos=Position.random(),
         )
         self.parent = parent
@@ -99,7 +84,7 @@ class InfantModel(mesa.Model):
 
         infant = Infant(
             model=self,
-            unique_id=self.toy_count,
+            unique_id=self._next_agent_id(),
             pos=np.array([x, y]),
             params=infant_params,
         )
@@ -108,13 +93,7 @@ class InfantModel(mesa.Model):
         self.schedule.add(infant)
 
     def step(self):
-        if self.get_middle_dist() < 10:
-            print("target achieved")
-            return
-
         self.schedule.step()
-
-        self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):
         return np.average(self.infant.satisfaction[-self.visualization_average_steps :])
@@ -141,3 +120,17 @@ class InfantModel(mesa.Model):
             toys = self.space.get_neighbors(pos, range, False)
 
         return [a for a in toys if type(a) == Toy]
+
+    def _make_toys(self):
+        for x in [1 / 4, 3 / 4]:
+            for y in [1 / 4, 3 / 4]:
+                toy_pos = np.array([x * self.space.x_max, y * self.space.y_max])
+                toy = Toy(self._next_agent_id(), self, toy_pos)
+                self.space.place_agent(toy, toy.pos)
+                self.toys.append(toy)
+                self.schedule.add(toy)
+
+    def _next_agent_id(self):
+        agent_id = self.next_agent_id
+        self.next_agent_id += 1
+        return agent_id

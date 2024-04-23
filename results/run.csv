@@ -1,3 +1,0 @@
-,width,height,speed,lego_count,precision,exploration,coordination,responsiveness,relevance,repeats,max_iter,goal_distance,parent_satisfaction,infant_satisfaction
-0,300,300,2,4,0.0,0.0,0.0,0.0,0.0,100,5000,"[127.60319876 127.60319876 127.41009811 ... 121.06302568 121.09408805
- 121.14425798]",[0. 0. 0. ... 0. 0. 0.],[0. 0. 0. ... 0. 0. 0.]

@@ -6,8 +6,6 @@ from infant_abm.agents.toy import Toy
 
 import mesa
 
-GRID_SIZE = 100
-
 
 def portrayal(agent):
     if type(agent) is Infant:
@@ -41,21 +39,13 @@ def portrayal(agent):
 
 model_canvas = Canvas(portrayal, 900, 900)
 
-chart_element = mesa.visualization.ChartModule(
-    [
-        {"Label": "Infant TPS", "Color": "#991144"},
-        {"Label": "Parent TPS", "Color": "#441199"},
-    ]
-)
-
 model_params = {
-    "width": GRID_SIZE,
-    "height": GRID_SIZE,
-    "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 10),
-    "exploration": mesa.visualization.Slider("Exploration / Exploatation", 50, 0, 100),
-    "responsiveness": mesa.visualization.Slider("Parent responsiveness", 50, 0, 100),
+    # "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 10),
+    "perception": mesa.visualization.Slider("Perception", 50, 0, 100),
+    "persistence": mesa.visualization.Slider("Persistence", 50, 0, 100),
+    "coordination": mesa.visualization.Slider("Coordination", 50, 0, 100),
 }
 
 server = mesa.visualization.ModularServer(
-    InfantModel, [model_canvas, chart_element], "Boids", model_params
+    InfantModel, [model_canvas], "Infant", model_params
 )

@@ -2,10 +2,11 @@ from enum import Enum
 from dataclasses import dataclass
 import math
 
-from infant_abm.utils import get_toys, calc_norm_vector, correct_out_of_bounds
+from infant_abm.agents.agent import Agent
 
 import numpy as np
-import mesa
+
+from infant_abm.agents.position import Position
 
 
 class Action(Enum):
@@ -16,43 +17,43 @@ class Action(Enum):
 
 @dataclass
 class Params:
-    precision: float
+    perception: float
+    persistence: float
     coordination: float
-    exploration: float
-
-    def to_numpy(self):
-        return np.array([self.precision, self.coordination, self.exploration])
 
     @staticmethod
-    def from_numpy(nd_array):
-        p, c, e = nd_array
-        return Params(precision=p, coordination=c, exploration=e)
+    def from_array(array):
+        p, c, e = array
+        return Params(perception=p, persistence=c, coordination=e)
 
     @staticmethod
-    def random():
-        return Params.from_numpy(np.random.random(3))
+    def from_slider(perception, persistence, coordination):
+        return Params.from_array(
+            np.array([perception, persistence, coordination]) / 100
+        )
+
+    def to_array(self):
+        return np.array([self.perception, self.persistence, self.coordination])
 
 
-class Infant(mesa.Agent):
-    def __init__(self, unique_id, model, pos, speed, params: Params):
-        super().__init__(unique_id, model)
-        self.pos = np.array(pos)
-        self.speed = speed
+class Infant(Agent):
+    def __init__(self, unique_id, model, pos, params: Params):
+        super().__init__(unique_id, model, pos)
+
+        self.speed = 1
 
         self.params: Params = params
 
         self.velocity = None
 
-        self.toy_interaction_range = 10
-        self.toy_throw_range = 20
+        self.toy_interaction_range = 2
+        self.toy_throw_range = 10
         self.target = None
         self.bonus_target = None
 
         self.satisfaction = []
 
         self.next_action = Action.LOOK_FOR_TOY
-
-        self.steps_until_distraction = None
 
     def step(self):
         """
@@ -69,34 +70,27 @@ class Infant(mesa.Agent):
             self._step_toy_interaction()
 
     def _step_crawl(self):
-        local_toys = get_toys(self.model, self.pos, self.toy_interaction_range)
+        if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
+            self.next_action = Action.INTERACT_WITH_TOY
+            return
 
-        if local_toys:
-            if self.target in local_toys or self.params.precision < np.random.rand():
-                self.target = local_toys[0]
-                self.next_action = Action.INTERACT_WITH_TOY
-                return
-
-        if self.steps_until_distraction == 0:
+        if self._gets_distracted():
             self.target = None
-
             self.next_action = Action.LOOK_FOR_TOY
             return
 
-        self.velocity = calc_norm_vector(self.pos, self.target.pos)
+        self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
-        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
-
-        if self.steps_until_distraction:
-            self.steps_until_distraction -= 1
-        self.model.space.move_agent(self, new_pos)
+        self.move_agent(new_pos)
 
     def _step_toy_interaction(self):
         throw_direction = None
 
-        if self.params.coordination > np.random.rand():
+        if self.params.coordination < np.random.rand():
+            parent_dist = math.dist(self.pos, self.model.parent.pos)
+            throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
-                calc_norm_vector(self.pos, self.model.parent.pos) * self.toy_throw_range
+                Position.calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
             )
         else:
             throw_direction = np.random.rand(2)
@@ -104,14 +98,12 @@ class Infant(mesa.Agent):
                 throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
             )
 
-        new_pos = self.pos + throw_direction
-        new_pos = correct_out_of_bounds(new_pos, self.model.get_dims())
-
-        self.model.space.move_agent(self.target, new_pos)
+        new_pos = self.target.pos + throw_direction
+        self.target.move_agent(new_pos)
 
         self.model.parent.respond(self.target)
 
-        self.target.times_interacted_with += 1
+        self.target.interact()
         self.model.parent.bonus_target = self.target
         if self.target == self.bonus_target:
             self.satisfaction[-1] += 1
@@ -121,27 +113,21 @@ class Infant(mesa.Agent):
         self.next_action = Action.LOOK_FOR_TOY
 
     def _step_change_target(self):
-        toys = get_toys(self.model, self.pos)
+        toys = self.model.get_toys()
 
         probabilities = np.array([self._toy_probability(toy) for toy in toys])
         probabilities /= probabilities.sum()
 
         [target] = np.random.choice(toys, size=1, p=probabilities)
-        self.velocity = calc_norm_vector(self.pos, target.pos)
+        self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
-
-        if self.params.precision > np.random.rand():
-            self.steps_until_distraction = None
-        else:
-            target_dist = math.dist(self.pos, self.target.pos)
-            steps_to_target = max(
-                1, np.floor(target_dist - self.toy_interaction_range) / self.speed
-            )
-            self.steps_until_distraction = np.random.randint(steps_to_target)
 
         self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
-        return np.power(
-            (toy.times_interacted_with + 1), 1 - 2 * self.params.exploration
-        )
+        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.params.perception)
+
+    def _gets_distracted(self):
+        if self.params.persistence == 1:
+            return False
+        return (1 - self.params.persistence) ** (1 / 25) < np.random.rand()

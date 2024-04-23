@@ -15,7 +15,7 @@ from infant_abm.utils import moving_average
 class RunResult:
     parameter_set: dict
     repeats: int
-    max_iterations: int
+    iterations: int
     goal_dist: np.ndarray
     parent_tps: np.ndarray
     infant_tps: np.ndarray
@@ -35,50 +35,33 @@ class RunResult:
 
     def get_columns(self):
         return [
-            "width",
-            "height",
-            "speed",
-            "lego_count",
-            "responsiveness",
-            "relevance",
-            "precision",
+            "perception",
+            "persistence",
             "coordination",
-            "exploration",
             "repeats",
-            "max_iter",
+            "iterations",
             "goal_distance",
             "parent_tps",
             "infant_tps",
         ]
 
     def to_list(self):
-        return (
-            [
-                self.parameter_set["width"],
-                self.parameter_set["height"],
-                self.parameter_set["speed"],
-                self.parameter_set["lego_count"],
-                self.parameter_set["responsiveness"],
-                self.parameter_set["relevance"],
-            ]
-            + list(self.parameter_set["infant_params"].to_numpy())
-            + [
-                self.repeats,
-                self.max_iterations,
-                self.goal_dist,
-                self.parent_tps,
-                self.infant_tps,
-            ]
-        )
+        return list(self.parameter_set["infant_params"].to_array()) + [
+            self.repeats,
+            self.iterations,
+            self.goal_dist,
+            self.parent_tps,
+            self.infant_tps,
+        ]
 
 
 class Simulation:
     def __init__(
-        self, model_param_sets, max_iterations, repeats, output_path=None, display=False
+        self, model_param_sets, iterations, repeats, output_path=None, display=False
     ):
         self.parameter_sets = model_param_sets
 
-        self.max_iterations: int = max_iterations
+        self.iterations: int = iterations
         self.repeats: int = repeats
 
         self.display = display
@@ -93,7 +76,7 @@ class Simulation:
     def run(self):
         n_runs = len(self.parameter_sets)
 
-        file_size = 8 * self.max_iterations * 3 * n_runs / 1024 / 1024
+        file_size = 8 * self.iterations * 3 * n_runs / 1024 / 1024 + 1
         if self.display:
             print(f"Runs no: {n_runs}, estimated output size: {file_size:.2f}MB")
 
@@ -116,6 +99,7 @@ class Simulation:
 
         out_df = pd.DataFrame(results_np, columns=columns)
 
+        # We use hdf, because writing arrays into csv is troublesome
         out_df.to_hdf(self.output_path, "hdfkey")
 
     def _run_param_set(self, param_set):
@@ -127,7 +111,7 @@ class Simulation:
         return RunResult(
             parameter_set=param_set,
             repeats=self.repeats,
-            max_iterations=self.max_iterations,
+            iterations=self.iterations,
             goal_dist=np.average([s["goal_dist"] for s in run_results], axis=0),
             parent_tps=np.average([s["parent"] for s in run_results], axis=0),
             infant_tps=np.average([s["infant"] for s in run_results], axis=0),
@@ -138,7 +122,7 @@ class Simulation:
 
         goal_dist = []
 
-        for _ in range(self.max_iterations):
+        for _ in range(self.iterations):
             model.step()
             goal_dist.append(model.get_middle_dist())
 

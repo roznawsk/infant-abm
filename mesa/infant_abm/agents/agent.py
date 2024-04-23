@@ -1,4 +1,6 @@
 import mesa
+import numpy as np
+
 from infant_abm.agents.position import Position
 
 
@@ -8,6 +10,14 @@ class Agent(mesa.Agent):
 
         self.pos = pos
 
+        # Direction of the agent ranging from 0 to +2π
+        self.direction = np.random.uniform(0, 2 * np.pi)
+
     def move_agent(self, new_pos):
+        self._update_direction(new_pos)
+
         new_pos = Position.correct_out_of_bounds(new_pos)
         self.model.space.move_agent(self, new_pos)
+
+    def _update_direction(self, new_pos):
+        self.direction = Position.angle(self.pos, new_pos)

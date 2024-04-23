@@ -26,26 +26,30 @@ class Params:
         p, c, e = array
         return Params(perception=p, persistence=c, coordination=e)
 
-    @staticmethod
-    def from_slider(perception, persistence, coordination):
-        return Params.from_array(
-            np.array([perception, persistence, coordination]) / 100
-        )
-
     def to_array(self):
         return np.array([self.perception, self.persistence, self.coordination])
 
 
 class Infant(Agent):
+    # Agent constants
+
+    speed = 1
+    toy_interaction_range = 2
+    toy_throw_range = 10
+
+    sight_angle = 10 / 180 * np.pi
+    sight_exploitation_gain = 0.05
+    explore_exploit_ratio_reset_steps = 15
+
+    distraction_exponent = 1 / 25
+
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos)
 
-        self.speed = 1
-        self.toy_interaction_range = 2
-        self.toy_throw_range = 10
-
         self.params: Params = params
-        self.explore_exploit_ratio = 0
+        self.explore_exploit_ratio = 0.5
+        self.parent_visible = False
+        self.steps_since_eye_contact = 0
         self.velocity = None
         self.target = None
         self.bonus_target = None
@@ -56,12 +60,18 @@ class Infant(Agent):
     def step(self):
         self.satisfaction.append(0)
 
-        if self.next_action == Action.CRAWL:
-            self._step_crawl()
-        elif self.next_action == Action.LOOK_FOR_TOY:
-            self._step_change_target()
-        elif self.next_action == Action.INTERACT_WITH_TOY:
-            self._step_toy_interaction()
+        print(f"dir {self.direction}")
+
+        self._update_parent_visible()
+        self._update_explore_exploit_ratio()
+
+        match self.next_action:
+            case Action.CRAWL:
+                self._step_crawl()
+            case Action.LOOK_FOR_TOY:
+                self._step_change_target()
+            case Action.INTERACT_WITH_TOY:
+                self._step_toy_interaction()
 
     def _step_crawl(self):
         if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
@@ -128,10 +138,25 @@ class Infant(Agent):
 
         if persistence == 0:
             return True
-        return persistence ** (1 / 25) < np.random.rand()
+        return persistence**self.distraction_exponent < np.random.rand()
 
     def _get_updated_param(self, value):
         if self.explore_exploit_ratio >= 0.5:
             return value + (1 - value) * (2 * self.explore_exploit_ratio - 1)
         else:
             return 2 * value * self.explore_exploit_ratio
+
+    def _update_parent_visible(self):
+        parent_angle = Position.angle(self.pos, self.model.parent.pos)
+        self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
+
+    def _update_explore_exploit_ratio(self):
+        if self.parent_visible:
+            self.steps_since_eye_contact = 0
+            self.explore_exploit_ratio = min(
+                1.0, self.explore_exploit_ratio + self.sight_exploitation_gain
+            )
+        else:
+            self.steps_since_eye_contact += 1
+            if self.steps_since_eye_contact == self.explore_exploit_ratio_reset_steps:
+                self.explore_exploit_ratio = 0.5

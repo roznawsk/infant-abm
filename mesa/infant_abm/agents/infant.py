@@ -41,25 +41,19 @@ class Infant(Agent):
         super().__init__(unique_id, model, pos)
 
         self.speed = 1
-
-        self.params: Params = params
-
-        self.velocity = None
-
         self.toy_interaction_range = 2
         self.toy_throw_range = 10
+
+        self.params: Params = params
+        self.explore_exploit_ratio = 0
+        self.velocity = None
         self.target = None
         self.bonus_target = None
-
         self.satisfaction = []
 
         self.next_action = Action.LOOK_FOR_TOY
 
     def step(self):
-        """
-        Get the Boid's neighbors, compute the new vector, and move accordingly.
-        """
-
         self.satisfaction.append(0)
 
         if self.next_action == Action.CRAWL:
@@ -85,8 +79,9 @@ class Infant(Agent):
 
     def _step_toy_interaction(self):
         throw_direction = None
+        coordination = self._get_updated_param(self.params.coordination)
 
-        if self.params.coordination < np.random.rand():
+        if coordination > np.random.rand():
             parent_dist = math.dist(self.pos, self.model.parent.pos)
             throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
@@ -125,9 +120,18 @@ class Infant(Agent):
         self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
-        return np.power((toy.times_interacted_with + 1), 1 - 2 * self.params.perception)
+        perception = self._get_updated_param(self.params.perception)
+        return np.power((toy.times_interacted_with + 1e-5), 2 * perception - 1)
 
     def _gets_distracted(self):
-        if self.params.persistence == 1:
-            return False
-        return (1 - self.params.persistence) ** (1 / 25) < np.random.rand()
+        persistence = self._get_updated_param(self.params.persistence)
+
+        if persistence == 0:
+            return True
+        return persistence ** (1 / 25) < np.random.rand()
+
+    def _get_updated_param(self, value):
+        if self.explore_exploit_ratio >= 0.5:
+            return value + (1 - value) * (2 * self.explore_exploit_ratio - 1)
+        else:
+            return 2 * value * self.explore_exploit_ratio

@@ -40,10 +40,12 @@ def portrayal(agent):
 model_canvas = Canvas(portrayal, 900, 900)
 
 model_params = {
-    # "toy_count": mesa.visualization.Slider("Toy count", 5, 1, 10),
     "perception": mesa.visualization.Slider("Perception", 50, 0, 100),
     "persistence": mesa.visualization.Slider("Persistence", 50, 0, 100),
     "coordination": mesa.visualization.Slider("Coordination", 50, 0, 100),
+    "explore_exploit_ratio": mesa.visualization.Slider(
+        "Explore-Exploit Ratio", 50, 0, 100
+    ),
 }
 
 server = mesa.visualization.ModularServer(

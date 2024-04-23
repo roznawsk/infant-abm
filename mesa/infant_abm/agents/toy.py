@@ -25,16 +25,8 @@ class Toy(Agent):
 
         super().__init__(unique_id, model, pos)
 
-        # if color is None:
-        #     color = self._random_color()
-
         self.model = model
-
-        # self.color_activated = color
-        # self.color_deactivated = self._deactivated_color()
-
         self.color = "#00FF00"
-
         self.times_interacted_with = 0
 
     def step(self):
@@ -57,13 +49,3 @@ class Toy(Agent):
         intensity = self.times_interacted_with / max_interactions
         color_red = (round(255 * intensity), round(255 * (1 - intensity)), 0)
         self.color = "#" + ("%02x%02x%02x" % color_red)
-
-    # def _deactivated_color(self):
-    #     color_rgb = self.color_activated.lstrip("#")
-    #     color_rgb = tuple(int(color_rgb[i : i + 2], 16) for i in [0, 2, 4])
-    #     color_rgb = tuple(c + 88 for c in color_rgb)
-
-    #     return "#" + ("%02x%02x%02x" % color_rgb)
-
-    # def _random_color(self):
-    #     return "#" + "".join([random.choice("345") for j in range(6)])

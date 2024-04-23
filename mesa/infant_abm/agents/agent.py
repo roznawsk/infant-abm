@@ -10,5 +10,4 @@ class Agent(mesa.Agent):
 
     def move_agent(self, new_pos):
         new_pos = Position.correct_out_of_bounds(new_pos)
-        # self.pos = new_pos
         self.model.space.move_agent(self, new_pos)

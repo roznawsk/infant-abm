@@ -29,3 +29,11 @@ class Position:
             pos[idx] = min(value - 1e-10, pos[idx])
 
         return pos
+
+    @staticmethod
+    def angle(first, second) -> float:
+        """
+        Calculate compass angle from the first point to the second one
+        """
+        vec = Position.calc_norm_vector(first, second)
+        return np.arctan2(*vec) % (2 * np.pi)

@@ -36,7 +36,7 @@ class RunResult:
     def get_columns(self):
         return [
             "perception",
-            "persistance",
+            "persistence",
             "coordination",
             "repeats",
             "iterations",

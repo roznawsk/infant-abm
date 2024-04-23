@@ -43,7 +43,6 @@ def get_particles(momentum, particle_number):
 
 
 if __name__ == "__main__":
-    grid_size = 300
     repeats = 17
     max_iter = 1500
     iterations = 8
@@ -51,11 +50,6 @@ if __name__ == "__main__":
     momentum = 0.6
     particle_number = 24 * 3
     average_steps = 500
-
-    # metric = {
-    #     'metric': 'goal_dist',
-    #     'goal_dist': 40,
-    # }
 
     metric = {
         "metric": "infant_tps",
@@ -83,7 +77,7 @@ if __name__ == "__main__":
         print(f"\n\nparent: {parent}\n")
 
         default_model_params = {
-            **{"width": grid_size, "height": grid_size, "speed": 2, "lego_count": 4},
+            **{"toy_count": 4},
             **parent,
         }
 
@@ -108,7 +102,6 @@ if __name__ == "__main__":
 
         for particle, fitness in zip(particles, fitness):
             particle.set_best_fitness(fitness)
-            # print(particle)
 
         print(f"Initial Fitness: {best_global_fitness:.4f} at {best_global_pos}")
 
@@ -117,7 +110,6 @@ if __name__ == "__main__":
 
             for particle in particles:
                 particle.move(best_global_pos)
-                # print(particle)
 
             parameter_sets = [
                 {

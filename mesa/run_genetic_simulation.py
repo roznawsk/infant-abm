@@ -20,10 +20,7 @@ def get_fitness(result):
 
 def fitness_func(_ga_instance, genotype, _solution_idx):
     parameter_set = {
-        "width": 300,
-        "height": 300,
-        "speed": 2,
-        "lego_count": 4,
+        "toy_count": 4,
         "responsiveness": 50,
         "relevance": 50,
         "infant_params": InfantParams(

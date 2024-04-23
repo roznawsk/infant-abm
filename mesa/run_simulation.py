@@ -1,63 +1,44 @@
 import numpy as np
 import itertools
+import warnings
 
 from simulation import Simulation
 from infant_abm.agents.infant import Params as InfantParams
 
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
-def get_model_param_sets(default_params):
-    prec = np.linspace(0.2, 1, 2)
-    exp = np.linspace(0, 1, 2)
-    coord = np.linspace(0, 1, 2)
-    resp = np.linspace(0, 1, 1)
-    rel = np.linspace(0, 1, 1)
+
+def get_model_param_sets(num):
+    p1, p2, p3 = num
+    perception = np.linspace(0, 1, p1)
+    persistence = np.linspace(0, 1, p2)
+    coordination = np.linspace(0, 1, p3)
 
     params = []
 
-    for param_set in itertools.product(*[prec, exp, coord, resp, rel]):
-        p, e, c, rs, rl = param_set
+    for param_set in itertools.product(*[perception, persistence, coordination]):
+        i_params = InfantParams.from_array(param_set)
 
-        i_params = InfantParams(precision=p, coordination=c, exploration=e)
-
-        params.append(
-            {
-                **default_params,
-                **{"infant_params": i_params, "responsiveness": rs, "relevance": rl},
-            }
-        )
+        params.append({"infant_params": i_params})
 
     return params
 
 
 if __name__ == "__main__":
-    grid_size = 300
-    repeats = 1
-    max_iter = 5000
-
+    repeats = 7
+    iterations = 2000
     output_path = "../results/test_run_temp.hdf"
 
-    default_model_params = {
-        "width": grid_size,
-        "height": grid_size,
-        "speed": 2,
-        "lego_count": 4,
-        # 'precision': 50,
-        # 'exploration': 50,
-        # 'coordination': 50,
-        "responsiveness": 50,
-        "relevance": 50,
-    }
-
-    parameter_sets = [get_model_param_sets(default_model_params)[0]]
+    parameter_sets = get_model_param_sets((8, 8, 8))
+    # parameter_sets = [{"infant_params": InfantParams(perception=0.66, persistence=1, coordination=1)}]
 
     simulation = Simulation(
         model_param_sets=parameter_sets,
-        max_iterations=max_iter,
+        iterations=iterations,
         repeats=repeats,
         output_path=output_path,
         display=True,
     )
 
     results = simulation.run()
-    print(results)
-    # simulation.save()
+    simulation.save()

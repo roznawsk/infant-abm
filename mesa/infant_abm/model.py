@@ -33,7 +33,6 @@ class InfantModel(mesa.Model):
         perception=None,
         persistence=None,
         coordination=None,
-        explore_exploit_ratio=None,
     ):
         """
         Create a new Infant model.
@@ -44,10 +43,7 @@ class InfantModel(mesa.Model):
         mesa.Model.__init__(self)
 
         if infant_params is None:
-            infant_params = InfantParams.from_slider(
-                perception, persistence, coordination
-            )
-
+            infant_params = InfantParams(perception, persistence, coordination)
         self.next_agent_id = 0
         self.toys = []
 
@@ -60,9 +56,13 @@ class InfantModel(mesa.Model):
 
         self.make_agents(infant_params)
 
-        self.infant.explore_exploit_ratio = explore_exploit_ratio / 100
+        self.explore_exploit_ratio = self.infant.explore_exploit_ratio
 
-        self.running = True
+        self.datacollector = mesa.DataCollector(
+            model_reporters={"explore-exploit-ratio": "explore_exploit_ratio"},
+        )
+
+        self.datacollector.collect(self)
 
     def make_agents(self, infant_params):
         """
@@ -96,6 +96,9 @@ class InfantModel(mesa.Model):
 
     def step(self):
         self.schedule.step()
+
+        self.explore_exploit_ratio = self.infant.explore_exploit_ratio
+        self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):
         return np.average(self.infant.satisfaction[-self.visualization_average_steps :])

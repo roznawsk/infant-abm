@@ -14,21 +14,18 @@ class Action(Enum):
 
 
 class Parent(Agent):
-    """ """
+    # Agent constants
+
+    speed = 5
+    toy_interaction_range = 10
+    toy_throw_range = 20
+
+    relevant_response_probability = 0.5
 
     def __init__(self, unique_id, model, pos):
-        """
-        Create a new Boid flocker agent.
-
-        Args:
-        """
         super().__init__(unique_id, model, pos)
-        self.speed = 5
 
         self.velocity = None
-
-        self.toy_interaction_range = 10
-        self.toy_throw_range = 20
         self.target = None
         self.bonus_target = None
 
@@ -37,10 +34,6 @@ class Parent(Agent):
         self.next_action = Action.WAIT
 
     def step(self):
-        """
-        Get the Boid's neighbors, compute the new vector, and move accordingly.
-        """
-
         self.satisfaction.append(0)
 
         if self.next_action == Action.WAIT:
@@ -49,6 +42,17 @@ class Parent(Agent):
             self._step_fetch_toy()
         elif self.next_action == Action.PASS_TOY:
             self._step_pass_toy()
+
+    def respond(self, toy):
+        """
+        Respond to infant's interaction with a toy
+        """
+        if self.model.responsiveness > np.random.rand():
+            if self.relevant_response_probability > np.random.rand():
+                self._respond_relevant(toy)
+            else:
+                self._respond_irrelevant()
+            self.next_action = Action.FETCH_TOY
 
     def _step_fetch_toy(self):
         toys = self.model.get_toys(self.pos, self.toy_interaction_range)
@@ -75,14 +79,6 @@ class Parent(Agent):
         self.target = None
         self.bonus_target = None
         self.next_action = Action.WAIT
-
-    def respond(self, toy):
-        if self.model.responsiveness > np.random.rand():
-            if 0.5 > np.random.rand():
-                self._respond_relevant(toy)
-            else:
-                self._respond_irrelevant()
-            self.next_action = Action.FETCH_TOY
 
     def _respond_relevant(self, toy):
         self.target = toy

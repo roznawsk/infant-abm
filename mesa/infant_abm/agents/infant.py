@@ -60,8 +60,6 @@ class Infant(Agent):
     def step(self):
         self.satisfaction.append(0)
 
-        print(f"dir {self.direction}")
-
         self._update_parent_visible()
         self._update_explore_exploit_ratio()
 

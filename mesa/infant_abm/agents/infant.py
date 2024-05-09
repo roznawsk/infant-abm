@@ -13,6 +13,7 @@ class Action(Enum):
     CRAWL = 1
     LOOK_FOR_TOY = 2
     INTERACT_WITH_TOY = 3
+    EVALUATE_TOY = 4
 
 
 @dataclass
@@ -36,6 +37,7 @@ class Infant(Agent):
     speed = 1
     toy_interaction_range = 2
     toy_throw_range = 10
+    toy_evaluation_steps = 3
 
     explore_exploit_ratio_reset_steps = 15
 
@@ -48,6 +50,7 @@ class Infant(Agent):
         self.explore_exploit_ratio = 0.5
         self.parent_visible = False
         self.steps_since_eye_contact = 0
+        self.current_evaluation_steps = 0
         self.velocity = None
         self.target = None
         self.bonus_target = None
@@ -65,9 +68,11 @@ class Infant(Agent):
             case Action.CRAWL:
                 self._step_crawl()
             case Action.LOOK_FOR_TOY:
-                self._step_change_target()
+                self._step_look_for_toy()
             case Action.INTERACT_WITH_TOY:
-                self._step_toy_interaction()
+                self._step_interact_with_toy()
+            case Action.EVALUATE_TOY:
+                self._step_evaluate_toy()
 
     def _step_crawl(self):
         if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
@@ -83,7 +88,7 @@ class Infant(Agent):
         new_pos = self.pos + self.velocity * self.speed
         self.move_agent(new_pos)
 
-    def _step_toy_interaction(self):
+    def _step_interact_with_toy(self):
         throw_direction = None
         coordination = self._get_updated_param(self.params.coordination)
 
@@ -114,7 +119,7 @@ class Infant(Agent):
 
         self.next_action = Action.LOOK_FOR_TOY
 
-    def _step_change_target(self):
+    def _step_look_for_toy(self):
         toys = self.model.get_toys()
 
         probabilities = np.array([self._toy_probability(toy) for toy in toys])
@@ -123,8 +128,20 @@ class Infant(Agent):
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
+        self.rotate_towards(target.pos)
 
-        self.next_action = Action.CRAWL
+        self.current_evaluation_steps = 0
+        self.explore_exploit_ratio = 0.5
+        self.next_action = Action.EVALUATE_TOY
+
+    def _step_evaluate_toy(self):
+        self.current_evaluation_steps += 1
+
+        if self.parent_visible and self.model.parent.infant_visible:
+            self.explore_exploit_ratio = 1.0
+            self.next_action = Action.CRAWL
+        elif self.current_evaluation_steps == self.toy_evaluation_steps:
+            self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
         perception = self._get_updated_param(self.params.perception)
@@ -147,11 +164,14 @@ class Infant(Agent):
         parent_angle = Position.angle(self.pos, self.model.parent.pos)
         self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
 
+    # def _update_explore_exploit_ratio(self):
+    #     if self.parent_visible:
+    #         self.steps_since_eye_contact = 0
+    #         self.explore_exploit_ratio = 1.0
+    #     else:
+    #         self.steps_since_eye_contact += 1
+    #         if self.steps_since_eye_contact == self.explore_exploit_ratio_reset_steps:
+    #             self.explore_exploit_ratio = 0.5
+
     def _update_explore_exploit_ratio(self):
-        if self.parent_visible:
-            self.steps_since_eye_contact = 0
-            self.explore_exploit_ratio = 1.0
-        else:
-            self.steps_since_eye_contact += 1
-            if self.steps_since_eye_contact == self.explore_exploit_ratio_reset_steps:
-                self.explore_exploit_ratio = 0.5
+        pass

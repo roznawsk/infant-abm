@@ -52,17 +52,25 @@ model_params = {
     "coordination": mesa.visualization.Slider("Coordination", 0.5, 0.0, 1.0, 0.01),
 }
 
-explore_exploit_chart = mesa.visualization.ChartModule(
+visibility_chart = mesa.visualization.ChartModule(
     [
-        # {"Label": "explore-exploit-ratio", "Color": "Black"},
         {"Label": "parent-visible", "Color": "Blue"},
         {"Label": "infant-visible", "Color": "Orange"},
-    ]
+    ],
+    canvas_height=120,
 )
+
+explore_exploit_chart = mesa.visualization.ChartModule(
+    [
+        {"Label": "explore-exploit-ratio", "Color": "Black"},
+    ],
+    canvas_height=120,
+)
+
 
 server = mesa.visualization.ModularServer(
     InfantModel,
-    [model_canvas, explore_exploit_chart],
+    [model_canvas, visibility_chart, explore_exploit_chart],
     "Infant ABM",
     model_params,
 )

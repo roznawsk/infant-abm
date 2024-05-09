@@ -44,7 +44,6 @@ class InfantModel(mesa.Model):
         if infant_params is None:
             infant_params = InfantParams(perception, persistence, coordination)
         self.next_agent_id = 0
-        self.toys = []
 
         self.visualization_average_steps = visualization_average_steps
 
@@ -53,6 +52,9 @@ class InfantModel(mesa.Model):
         Position.x_max = self.WIDTH
         Position.y_max = self.HEIGHT
 
+        self.parent: Parent = None
+        self.infant: Infant = None
+        self.toys = []
         self.make_agents(infant_params)
 
         self.explore_exploit_ratio = self.infant.explore_exploit_ratio

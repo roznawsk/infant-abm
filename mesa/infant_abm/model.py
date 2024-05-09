@@ -5,14 +5,19 @@ A Mesa implementation of Infant ABM Model
 """
 
 import math
-from infant_abm.agents.infant import Infant
-from infant_abm.agents.infant import Params as InfantParams
+import mesa
+import numpy as np
+
+from infant_abm.agents.infant_base import InfantBase
+from infant_abm.agents.infant.no_vision_infant import NoVisionInfant
+from infant_abm.agents.infant.vision_infant import VisionInfant
+from infant_abm.agents.infant.seq_vision_infant import SeqVisionInfant
+
+from infant_abm.agents.infant_base import Params as InfantParams
 
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
 
-import numpy as np
-import mesa
 
 from infant_abm.agents.position import Position
 
@@ -25,6 +30,10 @@ class InfantModel(mesa.Model):
     WIDTH = 100
     HEIGHT = 100
 
+    # infant_class = NoVisionInfant
+    # infant_class = VisionInfant
+    infant_class = SeqVisionInfant
+
     def __init__(
         self,
         visualization_average_steps=300,
@@ -35,8 +44,6 @@ class InfantModel(mesa.Model):
     ):
         """
         Create a new Infant model.
-
-        Args:
         """
 
         mesa.Model.__init__(self)
@@ -53,11 +60,11 @@ class InfantModel(mesa.Model):
         Position.y_max = self.HEIGHT
 
         self.parent: Parent = None
-        self.infant: Infant = None
+        self.infant: InfantBase = None
         self.toys = []
         self.make_agents(infant_params)
 
-        self.explore_exploit_ratio = self.infant.explore_exploit_ratio
+        self.explore_exploit_ratio = getattr(self.infant, "explore_exploit_ratio", -1.0)
 
         self.datacollector = mesa.DataCollector(
             model_reporters={
@@ -89,7 +96,7 @@ class InfantModel(mesa.Model):
         x = 0.5 * Position.x_max
         y = 0.5 * Position.y_max
 
-        infant = Infant(
+        infant = self.infant_class(
             model=self,
             unique_id=self._next_agent_id(),
             pos=np.array([x, y]),
@@ -102,8 +109,8 @@ class InfantModel(mesa.Model):
     def step(self):
         self.schedule.step()
 
-        self.explore_exploit_ratio = self.infant.explore_exploit_ratio
-        self.parent_visible = int(self.infant.parent_visible)
+        self.explore_exploit_ratio = getattr(self.infant, "explore_exploit_ratio", -1.0)
+        self.parent_visible = int(getattr(self.infant, "parent_visible", 0))
         self.infant_visible = int(self.parent.infant_visible) / 2
 
         self.datacollector.collect(self)

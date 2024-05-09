@@ -1,6 +1,6 @@
 from infant_abm.model import InfantModel
 from infant_abm.canvas import Canvas
-from infant_abm.agents.infant import Infant
+from infant_abm.agents.infant_base import InfantBase
 from infant_abm.agents.parent import Parent
 from infant_abm.agents.toy import Toy
 
@@ -15,7 +15,7 @@ import mesa
 
 
 def portrayal(agent):
-    if type(agent) is Infant:
+    if issubclass(type(agent), InfantBase):
         return {
             "Shape": "infant_abm/resources/stickfigure.png",
             "Layer": 1,

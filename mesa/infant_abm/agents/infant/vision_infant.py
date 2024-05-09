@@ -1,92 +1,25 @@
-from enum import Enum
-from dataclasses import dataclass
 import math
-
-from infant_abm.agents.agent import Agent
-
 import numpy as np
 
+from infant_abm.agents.infant_base import InfantBase, Params, Action
 from infant_abm.agents.position import Position
 
 
-class Action(Enum):
-    CRAWL = 1
-    LOOK_FOR_TOY = 2
-    INTERACT_WITH_TOY = 3
-    EVALUATE_TOY = 4
-
-
-@dataclass
-class Params:
-    perception: float
-    persistence: float
-    coordination: float
-
-    @staticmethod
-    def from_array(array):
-        p, c, e = array
-        return Params(perception=p, persistence=c, coordination=e)
-
-    def to_array(self):
-        return np.array([self.perception, self.persistence, self.coordination])
-
-
-class Infant(Agent):
+class VisionInfant(InfantBase):
     # Agent constants
-
-    speed = 1
-    toy_interaction_range = 2
-    toy_throw_range = 10
-    toy_evaluation_steps = 3
 
     explore_exploit_ratio_reset_steps = 15
 
-    distraction_exponent = 1 / 25
-
     def __init__(self, unique_id, model, pos, params: Params):
-        super().__init__(unique_id, model, pos)
+        super().__init__(unique_id, model, pos, params)
 
-        self.params: Params = params
         self.explore_exploit_ratio = 0.5
         self.parent_visible = False
         self.steps_since_eye_contact = 0
-        self.current_evaluation_steps = 0
-        self.velocity = None
-        self.target = None
-        self.bonus_target = None
-        self.satisfaction = []
 
-        self.next_action = Action.LOOK_FOR_TOY
-
-    def step(self):
-        self.satisfaction.append(0)
-
+    def _before_step(self):
         self._update_parent_visible()
         self._update_explore_exploit_ratio()
-
-        match self.next_action:
-            case Action.CRAWL:
-                self._step_crawl()
-            case Action.LOOK_FOR_TOY:
-                self._step_look_for_toy()
-            case Action.INTERACT_WITH_TOY:
-                self._step_interact_with_toy()
-            case Action.EVALUATE_TOY:
-                self._step_evaluate_toy()
-
-    def _step_crawl(self):
-        if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
-            self.next_action = Action.INTERACT_WITH_TOY
-            return
-
-        if self._gets_distracted():
-            self.target = None
-            self.next_action = Action.LOOK_FOR_TOY
-            return
-
-        self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
-        new_pos = self.pos + self.velocity * self.speed
-        self.move_agent(new_pos)
 
     def _step_interact_with_toy(self):
         throw_direction = None
@@ -130,18 +63,7 @@ class Infant(Agent):
         self.target = target
         self.rotate_towards(target.pos)
 
-        self.current_evaluation_steps = 0
-        self.explore_exploit_ratio = 0.5
-        self.next_action = Action.EVALUATE_TOY
-
-    def _step_evaluate_toy(self):
-        self.current_evaluation_steps += 1
-
-        if self.parent_visible and self.model.parent.infant_visible:
-            self.explore_exploit_ratio = 1.0
-            self.next_action = Action.CRAWL
-        elif self.current_evaluation_steps == self.toy_evaluation_steps:
-            self.next_action = Action.CRAWL
+        self.next_action = Action.CRAWL
 
     def _toy_probability(self, toy):
         perception = self._get_updated_param(self.params.perception)
@@ -164,14 +86,11 @@ class Infant(Agent):
         parent_angle = Position.angle(self.pos, self.model.parent.pos)
         self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
 
-    # def _update_explore_exploit_ratio(self):
-    #     if self.parent_visible:
-    #         self.steps_since_eye_contact = 0
-    #         self.explore_exploit_ratio = 1.0
-    #     else:
-    #         self.steps_since_eye_contact += 1
-    #         if self.steps_since_eye_contact == self.explore_exploit_ratio_reset_steps:
-    #             self.explore_exploit_ratio = 0.5
-
     def _update_explore_exploit_ratio(self):
-        pass
+        if self.parent_visible:
+            self.steps_since_eye_contact = 0
+            self.explore_exploit_ratio = 1.0
+        else:
+            self.steps_since_eye_contact += 1
+            if self.steps_since_eye_contact == self.explore_exploit_ratio_reset_steps:
+                self.explore_exploit_ratio = 0.5

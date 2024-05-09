@@ -37,8 +37,6 @@ class Infant(Agent):
     toy_interaction_range = 2
     toy_throw_range = 10
 
-    sight_angle = 10 / 180 * np.pi
-    sight_exploitation_gain = 0.05
     explore_exploit_ratio_reset_steps = 15
 
     distraction_exponent = 1 / 25
@@ -103,6 +101,7 @@ class Infant(Agent):
 
         new_pos = self.target.pos + throw_direction
         self.target.move_agent(new_pos)
+        self.rotate_towards(new_pos)
 
         self.model.parent.respond(self.target)
 
@@ -151,9 +150,7 @@ class Infant(Agent):
     def _update_explore_exploit_ratio(self):
         if self.parent_visible:
             self.steps_since_eye_contact = 0
-            self.explore_exploit_ratio = min(
-                1.0, self.explore_exploit_ratio + self.sight_exploitation_gain
-            )
+            self.explore_exploit_ratio = 1.0
         else:
             self.steps_since_eye_contact += 1
             if self.steps_since_eye_contact == self.explore_exploit_ratio_reset_steps:

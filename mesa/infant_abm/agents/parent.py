@@ -16,11 +16,12 @@ class Action(Enum):
 class Parent(Agent):
     # Agent constants
 
+    responsiveness = 0.5
+    relevant_response_probability = 0.5
+
     speed = 5
     toy_interaction_range = 10
     toy_throw_range = 20
-
-    relevant_response_probability = 0.5
 
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model, pos)
@@ -30,11 +31,14 @@ class Parent(Agent):
         self.bonus_target = None
 
         self.satisfaction = []
+        self.infant_visible = False
 
         self.next_action = Action.WAIT
 
     def step(self):
         self.satisfaction.append(0)
+
+        self._update_infant_visible()
 
         if self.next_action == Action.WAIT:
             pass
@@ -47,7 +51,7 @@ class Parent(Agent):
         """
         Respond to infant's interaction with a toy
         """
-        if self.model.responsiveness > np.random.rand():
+        if self.responsiveness > np.random.rand():
             if self.relevant_response_probability > np.random.rand():
                 self._respond_relevant(toy)
             else:
@@ -72,6 +76,7 @@ class Parent(Agent):
 
         new_pos = self.pos + throw_direction
         self.target.move_agent(new_pos)
+        self.rotate_towards(new_pos)
 
         self.model.infant.bonus_target = self.target
         if self.target == self.bonus_target:
@@ -91,3 +96,7 @@ class Parent(Agent):
 
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.target = target
+
+    def _update_infant_visible(self):
+        infant_angle = Position.angle(self.pos, self.model.infant.pos)
+        self.infant_visible = abs(infant_angle - self.direction) < self.sight_angle

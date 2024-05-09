@@ -7,11 +7,11 @@ from infant_abm.agents.toy import Toy
 import mesa
 
 
-def get_parent_visible(model):
-    """
-    Display whether infant sees the parent
-    """
-    return f"parent visible: {model.infant.parent_visible}"
+# def get_parent_visible(model):
+#     return f"parent visible: {model.infant.parent_visible}"
+
+# def get_infant_visible(model):
+#     return f"infant visible: {model.parent.infant_visible}"
 
 
 def portrayal(agent):
@@ -53,12 +53,16 @@ model_params = {
 }
 
 explore_exploit_chart = mesa.visualization.ChartModule(
-    [{"Label": "explore-exploit-ratio", "Color": "Black"}]
+    [
+        # {"Label": "explore-exploit-ratio", "Color": "Black"},
+        {"Label": "parent-visible", "Color": "Blue"},
+        {"Label": "infant-visible", "Color": "Orange"},
+    ]
 )
 
 server = mesa.visualization.ModularServer(
     InfantModel,
-    [get_parent_visible, model_canvas, explore_exploit_chart],
+    [model_canvas, explore_exploit_chart],
     "Infant ABM",
     model_params,
 )

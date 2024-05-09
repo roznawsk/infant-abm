@@ -24,7 +24,6 @@ class InfantModel(mesa.Model):
 
     WIDTH = 100
     HEIGHT = 100
-    responsiveness = 0.5
 
     def __init__(
         self,
@@ -59,7 +58,11 @@ class InfantModel(mesa.Model):
         self.explore_exploit_ratio = self.infant.explore_exploit_ratio
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"explore-exploit-ratio": "explore_exploit_ratio"},
+            model_reporters={
+                "explore-exploit-ratio": "explore_exploit_ratio",
+                "parent-visible": "parent_visible",
+                "infant-visible": "infant_visible",
+            },
         )
 
         self.datacollector.collect(self)
@@ -98,6 +101,9 @@ class InfantModel(mesa.Model):
         self.schedule.step()
 
         self.explore_exploit_ratio = self.infant.explore_exploit_ratio
+        self.parent_visible = int(self.infant.parent_visible)
+        self.infant_visible = int(self.parent.infant_visible) / 2
+
         self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):

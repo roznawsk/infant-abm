@@ -3,7 +3,6 @@ import numpy as np
 
 from infant_abm.agents.infant_base import InfantBase, Params, Action
 from infant_abm.agents.position import Position
-from infant_abm.agents.infant.explore_exploit_ratio import ExploreExploitRatio
 
 
 class SeqVisionInfant(InfantBase):
@@ -15,7 +14,6 @@ class SeqVisionInfant(InfantBase):
         super().__init__(unique_id, model, pos, params)
 
         self.parent_visible = False
-        # self.explore_exploit_ratio = ExploreExploitRatio()
         self.explore_exploit_ratio = 0.5
         self.steps_since_eye_contact = 0
         self.current_evaluation_steps = 0

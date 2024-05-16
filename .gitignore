@@ -90,3 +90,5 @@ results/run_grid_6.hdf
 
 # Output html / pdf
 /output/
+
+.DS_STORE

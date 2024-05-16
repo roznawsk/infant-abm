@@ -31,8 +31,8 @@ class InfantModel(mesa.Model):
     HEIGHT = 100
 
     # infant_class = NoVisionInfant
-    # infant_class = VisionInfant
-    infant_class = SeqVisionInfant
+    infant_class = VisionInfant
+    # infant_class = SeqVisionInfant
 
     def __init__(
         self,

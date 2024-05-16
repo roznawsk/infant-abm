@@ -53,7 +53,7 @@ def run_comparative_simulation():
             parameter_sets = get_model_param_sets(
                 (0.4, 0.6, 3), base_params=base_params
             )
-            output_path = f"../results/comparative/{parent_class}_{infant_class}.hdf"
+            output_path = f"../results/comparative2/{parent_class}_{infant_class}.hdf"
 
             simulation = Simulation(
                 model_param_sets=parameter_sets,

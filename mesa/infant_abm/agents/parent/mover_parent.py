@@ -1,16 +1,17 @@
 import numpy as np
 
 from infant_abm.agents.parent_base import ParentBase, Action
+from infant_abm.agents.infant.events import ToyThrown
 
 
 class MoverParent(ParentBase):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model, pos)
 
-    def respond(self, toy):
+    def _handle_event_toy_thrown(self, event: ToyThrown):
         if self.responsiveness > np.random.rand():
             if self.relevant_response_probability > np.random.rand():
-                self._respond_relevant(toy)
+                self._respond_relevant(event.toy)
             else:
                 self._respond_irrelevant()
             self.next_action = Action.FETCH_TOY

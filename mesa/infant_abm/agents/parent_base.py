@@ -4,6 +4,7 @@ import math
 
 from infant_abm.agents.agent import Agent
 from infant_abm.agents.position import Position
+from infant_abm.agents.infant.events import ToySelected, ToyThrown
 
 
 class Action(Enum):
@@ -39,18 +40,23 @@ class ParentBase(Agent):
 
         self._update_infant_visible()
 
-        if self.next_action == Action.WAIT:
-            pass
-        elif self.next_action == Action.FETCH_TOY:
-            self._step_fetch_toy()
-        elif self.next_action == Action.PASS_TOY:
-            self._step_pass_toy()
+        match self.next_action:
+            case Action.WAIT:
+                pass
+            case Action.FETCH_TOY:
+                self._step_fetch_toy()
+            case Action.PASS_TOY:
+                self._step_pass_toy()
 
-    def respond(self, toy):
+    def handle_event(self, event):
         """
         Respond to infant's interaction with a toy
         """
-        pass
+        match event:
+            case ToyThrown():
+                self._handle_event_toy_thrown(event)
+            case ToySelected():
+                self._handle_event_toy_selected(event)
 
     def _step_fetch_toy(self):
         toys = self.model.get_toys(self.pos, self.toy_interaction_range)
@@ -82,3 +88,9 @@ class ParentBase(Agent):
     def _update_infant_visible(self):
         infant_angle = Position.angle(self.pos, self.model.infant.pos)
         self.infant_visible = abs(infant_angle - self.direction) < self.sight_angle
+
+    def _handle_event_toy_thrown(self, event):
+        pass
+
+    def _handle_event_toy_selected(self, event):
+        pass

@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 from infant_abm.agents.infant_base import InfantBase, Params, Action
+from infant_abm.agents.infant.events import ToySelected, ToyThrown
 from infant_abm.agents.position import Position
 
 
@@ -28,7 +29,7 @@ class NoVisionInfant(InfantBase):
         self.target.move_agent(new_pos)
         self.rotate_towards(new_pos)
 
-        self.model.parent.respond(self.target)
+        self.model.parent.handle_event(ToyThrown(self.target))
 
         self.target.interact()
         self.model.parent.bonus_target = self.target
@@ -49,6 +50,7 @@ class NoVisionInfant(InfantBase):
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
         self.next_action = Action.CRAWL
+        self.model.parent.handle_event(ToySelected(self.target))
 
     def _gets_distracted(self):
         if self.params.persistence == 0:

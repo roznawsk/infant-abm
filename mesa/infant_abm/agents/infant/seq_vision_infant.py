@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 from infant_abm.agents.infant_base import InfantBase, Params, Action
+from infant_abm.agents.infant.events import ToySelected, ToyThrown
 from infant_abm.agents.position import Position
 
 
@@ -41,9 +42,9 @@ class SeqVisionInfant(InfantBase):
         self.target.move_agent(new_pos)
         self.rotate_towards(new_pos)
 
-        self.model.parent.respond(self.target)
-
         self.target.interact()
+        self.model.parent.handle_event(ToyThrown(self.target))
+
         self.model.parent.bonus_target = self.target
         if self.target == self.bonus_target:
             self.satisfaction[-1] += 1
@@ -65,7 +66,8 @@ class SeqVisionInfant(InfantBase):
 
         self.current_evaluation_steps = 0
         self.explore_exploit_ratio = 0.5
-        self.next_action = Action.EVALUATE_TOY
+
+        self._start_evaluating_toy()
 
     def _step_evaluate_toy(self):
         self.current_evaluation_steps += 1
@@ -96,3 +98,11 @@ class SeqVisionInfant(InfantBase):
     def _update_parent_visible(self):
         parent_angle = Position.angle(self.pos, self.model.parent.pos)
         self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
+
+    def _start_evaluating_toy(self):
+        self.next_action = Action.EVALUATE_TOY
+
+        if 0.5 > np.random.rand():
+            self.rotate_towards(self.model.parent.pos)
+
+            self.model.parent.handle_event(ToySelected(self.target))

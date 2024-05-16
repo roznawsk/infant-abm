@@ -46,7 +46,8 @@ def portrayal(agent):
 
 # parent_class = "MoverParent"
 parent_class = "VisionOnlyParent"
-infant_class = "NoVisionInfant"
+# infant_class = "NoVisionInfant"
+infant_class = "SeqVisionInfant"
 
 
 def get_agent_classes(model):

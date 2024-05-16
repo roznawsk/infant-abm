@@ -1,7 +1,7 @@
 from infant_abm.model import InfantModel
 from infant_abm.canvas import Canvas
 from infant_abm.agents.infant_base import InfantBase
-from infant_abm.agents.parent import Parent
+from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.toy import Toy
 
 import mesa
@@ -35,7 +35,7 @@ def portrayal(agent):
             "Filled": "true",
         }
 
-    elif type(agent) is Parent:
+    elif issubclass(type(agent), ParentBase):
         return {
             "Shape": "infant_abm/resources/stickfigure.png",
             "Layer": 1,
@@ -44,9 +44,20 @@ def portrayal(agent):
         }
 
 
+# parent_class = "MoverParent"
+parent_class = "VisionOnlyParent"
+infant_class = "NoVisionInfant"
+
+
+def get_agent_classes(model):
+    return f"{parent_class}, {infant_class}"
+
+
 model_canvas = Canvas(portrayal, 650, 650)
 
 model_params = {
+    "parent_class": parent_class,
+    "infant_class": infant_class,
     "perception": mesa.visualization.Slider("Perception", 0.5, 0.0, 1.0, 0.01),
     "persistence": mesa.visualization.Slider("Persistence", 0.5, 0.0, 1.0, 0.01),
     "coordination": mesa.visualization.Slider("Coordination", 0.5, 0.0, 1.0, 0.01),
@@ -70,7 +81,12 @@ explore_exploit_chart = mesa.visualization.ChartModule(
 
 server = mesa.visualization.ModularServer(
     InfantModel,
-    [model_canvas, visibility_chart, explore_exploit_chart],
+    [
+        get_agent_classes,
+        model_canvas,
+        visibility_chart,
+        explore_exploit_chart,
+    ],
     "Infant ABM",
     model_params,
 )

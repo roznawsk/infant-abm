@@ -1,6 +1,5 @@
 from enum import Enum
 
-import numpy as np
 import math
 
 from infant_abm.agents.agent import Agent
@@ -13,7 +12,7 @@ class Action(Enum):
     PASS_TOY = 3
 
 
-class Parent(Agent):
+class ParentBase(Agent):
     # Agent constants
 
     responsiveness = 0.5
@@ -51,12 +50,7 @@ class Parent(Agent):
         """
         Respond to infant's interaction with a toy
         """
-        if self.responsiveness > np.random.rand():
-            if self.relevant_response_probability > np.random.rand():
-                self._respond_relevant(toy)
-            else:
-                self._respond_irrelevant()
-            self.next_action = Action.FETCH_TOY
+        pass
 
     def _step_fetch_toy(self):
         toys = self.model.get_toys(self.pos, self.toy_interaction_range)
@@ -84,18 +78,6 @@ class Parent(Agent):
         self.target = None
         self.bonus_target = None
         self.next_action = Action.WAIT
-
-    def _respond_relevant(self, toy):
-        self.target = toy
-
-    def _respond_irrelevant(self):
-        toys = self.model.get_toys()
-
-        probabilities = np.array([1 for _ in toys])
-        probabilities = probabilities / probabilities.sum()
-
-        [target] = np.random.choice(toys, size=1, p=probabilities)
-        self.target = target
 
     def _update_infant_visible(self):
         infant_angle = Position.angle(self.pos, self.model.infant.pos)

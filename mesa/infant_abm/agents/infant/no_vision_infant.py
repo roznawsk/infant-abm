@@ -48,6 +48,7 @@ class NoVisionInfant(InfantBase):
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
+        self.next_action = Action.CRAWL
 
     def _gets_distracted(self):
         if self.params.persistence == 0:

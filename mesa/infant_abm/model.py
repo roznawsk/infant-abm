@@ -9,13 +9,16 @@ import mesa
 import numpy as np
 
 from infant_abm.agents.infant_base import InfantBase
-from infant_abm.agents.infant.no_vision_infant import NoVisionInfant
-from infant_abm.agents.infant.vision_infant import VisionInfant
-from infant_abm.agents.infant.seq_vision_infant import SeqVisionInfant
-
 from infant_abm.agents.infant_base import Params as InfantParams
 
-from infant_abm.agents.parent import Parent
+from infant_abm.agents.infant.no_vision_infant import NoVisionInfant
+from infant_abm.agents.infant.seq_vision_infant import SeqVisionInfant
+
+from infant_abm.agents.parent_base import ParentBase
+from infant_abm.agents.parent.mover_parent import MoverParent
+from infant_abm.agents.parent.vision_only_parent import VisionOnlyParent
+
+
 from infant_abm.agents.toy import Toy
 
 
@@ -30,13 +33,11 @@ class InfantModel(mesa.Model):
     WIDTH = 100
     HEIGHT = 100
 
-    # infant_class = NoVisionInfant
-    infant_class = VisionInfant
-    # infant_class = SeqVisionInfant
-
     def __init__(
         self,
         visualization_average_steps=300,
+        infant_class="SeqVisionInfant",
+        parent_class="MoverParent",
         infant_params=None,
         perception=None,
         persistence=None,
@@ -59,8 +60,20 @@ class InfantModel(mesa.Model):
         Position.x_max = self.WIDTH
         Position.y_max = self.HEIGHT
 
-        self.parent: Parent = None
+        self.parent: ParentBase = None
+        match parent_class:
+            case "MoverParent":
+                self.parent_class = MoverParent
+            case "VisionOnlyParent":
+                self.parent_class = VisionOnlyParent
+
         self.infant: InfantBase = None
+        match infant_class:
+            case "NoVisionInfant":
+                self.infant_class = NoVisionInfant
+            case "SeqVisionInfant":
+                self.infant_class = SeqVisionInfant
+
         self.toys = []
         self.make_agents(infant_params)
 
@@ -83,7 +96,7 @@ class InfantModel(mesa.Model):
 
         self._make_toys()
 
-        parent = Parent(
+        parent = self.parent_class(
             model=self,
             unique_id=self._next_agent_id(),
             pos=Position.random(),

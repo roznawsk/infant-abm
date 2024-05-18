@@ -1,3 +1,7 @@
+# Simulation output files
+/results/*
+/mesa/genetic_results/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -87,3 +91,5 @@ results/run_grid_6.hdf
 
 # Output html / pdf
 /output/
+
+.DS_STORE

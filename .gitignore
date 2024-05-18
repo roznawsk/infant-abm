@@ -1,5 +1,6 @@
 # Simulation output files
 /results/*
+/mesa/genetic_results/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

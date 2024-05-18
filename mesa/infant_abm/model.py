@@ -5,14 +5,22 @@ A Mesa implementation of Infant ABM Model
 """
 
 import math
-from infant_abm.agents.infant import Infant
-from infant_abm.agents.infant import Params as InfantParams
+import mesa
+import numpy as np
 
-from infant_abm.agents.parent import Parent
+from infant_abm.agents.infant_base import InfantBase
+from infant_abm.agents.infant_base import Params as InfantParams
+
+from infant_abm.agents.infant.no_vision_infant import NoVisionInfant
+from infant_abm.agents.infant.seq_vision_infant import SeqVisionInfant
+
+from infant_abm.agents.parent_base import ParentBase
+from infant_abm.agents.parent.mover_parent import MoverParent
+from infant_abm.agents.parent.vision_only_parent import VisionOnlyParent
+
+
 from infant_abm.agents.toy import Toy
 
-import numpy as np
-import mesa
 
 from infant_abm.agents.position import Position
 
@@ -24,11 +32,12 @@ class InfantModel(mesa.Model):
 
     WIDTH = 100
     HEIGHT = 100
-    responsiveness = 0.5
 
     def __init__(
         self,
         visualization_average_steps=300,
+        infant_class="SeqVisionInfant",
+        parent_class="MoverParent",
         infant_params=None,
         perception=None,
         persistence=None,
@@ -36,8 +45,6 @@ class InfantModel(mesa.Model):
     ):
         """
         Create a new Infant model.
-
-        Args:
         """
 
         mesa.Model.__init__(self)
@@ -45,7 +52,6 @@ class InfantModel(mesa.Model):
         if infant_params is None:
             infant_params = InfantParams(perception, persistence, coordination)
         self.next_agent_id = 0
-        self.toys = []
 
         self.visualization_average_steps = visualization_average_steps
 
@@ -54,12 +60,31 @@ class InfantModel(mesa.Model):
         Position.x_max = self.WIDTH
         Position.y_max = self.HEIGHT
 
+        self.parent: ParentBase = None
+        match parent_class:
+            case "MoverParent":
+                self.parent_class = MoverParent
+            case "VisionOnlyParent":
+                self.parent_class = VisionOnlyParent
+
+        self.infant: InfantBase = None
+        match infant_class:
+            case "NoVisionInfant":
+                self.infant_class = NoVisionInfant
+            case "SeqVisionInfant":
+                self.infant_class = SeqVisionInfant
+
+        self.toys = []
         self.make_agents(infant_params)
 
-        self.explore_exploit_ratio = self.infant.explore_exploit_ratio
+        self.explore_exploit_ratio = getattr(self.infant, "explore_exploit_ratio", -1.0)
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"explore-exploit-ratio": "explore_exploit_ratio"},
+            model_reporters={
+                "explore-exploit-ratio": "explore_exploit_ratio",
+                "parent-visible": "parent_visible",
+                "infant-visible": "infant_visible",
+            },
         )
 
         self.datacollector.collect(self)
@@ -71,7 +96,7 @@ class InfantModel(mesa.Model):
 
         self._make_toys()
 
-        parent = Parent(
+        parent = self.parent_class(
             model=self,
             unique_id=self._next_agent_id(),
             pos=Position.random(),
@@ -84,7 +109,7 @@ class InfantModel(mesa.Model):
         x = 0.5 * Position.x_max
         y = 0.5 * Position.y_max
 
-        infant = Infant(
+        infant = self.infant_class(
             model=self,
             unique_id=self._next_agent_id(),
             pos=np.array([x, y]),
@@ -97,7 +122,10 @@ class InfantModel(mesa.Model):
     def step(self):
         self.schedule.step()
 
-        self.explore_exploit_ratio = self.infant.explore_exploit_ratio
+        self.explore_exploit_ratio = getattr(self.infant, "explore_exploit_ratio", -1.0)
+        self.parent_visible = int(getattr(self.infant, "parent_visible", 0))
+        self.infant_visible = int(self.parent.infant_visible) / 2
+
         self.datacollector.collect(self)
 
     def get_infant_satisfaction(self):

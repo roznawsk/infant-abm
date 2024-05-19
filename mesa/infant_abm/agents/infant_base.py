@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from infant_abm.agents.agent import Agent
 from infant_abm.agents.position import Position
+from infant_abm.agents.infant.parameter import Parameter
 
 
 class Action(Enum):
@@ -17,17 +18,19 @@ class Action(Enum):
 
 @dataclass
 class Params:
-    perception: float
-    persistence: float
-    coordination: float
+    perception: Parameter
+    persistence: Parameter
+    coordination: Parameter
 
     @staticmethod
     def from_array(array):
-        p, c, e = array
-        return Params(perception=p, persistence=c, coordination=e)
+        c, s, o = array
+        return Params(
+            perception=Parameter(c), persistence=Parameter(s), coordination=Parameter(o)
+        )
 
     def to_array(self):
-        return np.array([self.perception, self.persistence, self.coordination])
+        return np.array([self.perception.e1, self.persistence.e1, self.coordination.e1])
 
 
 class InfantBase(Agent):
@@ -56,14 +59,14 @@ class InfantBase(Agent):
         self._before_step()
 
         match self.next_action:
-            case Action.CRAWL:
-                self._step_crawl()
             case Action.LOOK_FOR_TOY:
                 self._step_look_for_toy()
-            case Action.INTERACT_WITH_TOY:
-                self._step_interact_with_toy()
             case Action.EVALUATE_TOY:
                 self._step_evaluate_toy()
+            case Action.CRAWL:
+                self._step_crawl()
+            case Action.INTERACT_WITH_TOY:
+                self._step_interact_with_toy()
 
     def _before_step(self):
         pass

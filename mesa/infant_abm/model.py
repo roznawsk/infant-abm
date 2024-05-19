@@ -13,6 +13,7 @@ from infant_abm.agents.infant_base import Params as InfantParams
 
 from infant_abm.agents.infant.no_vision_infant import NoVisionInfant
 from infant_abm.agents.infant.seq_vision_infant import SeqVisionInfant
+from infant_abm.agents.infant.parameter import Parameter
 
 from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.parent.mover_parent import MoverParent
@@ -37,7 +38,7 @@ class InfantModel(mesa.Model):
         self,
         visualization_average_steps=300,
         infant_class="SeqVisionInfant",
-        parent_class="MoverParent",
+        parent_class="VisionOnlyParent",
         infant_params=None,
         perception=None,
         persistence=None,
@@ -50,7 +51,9 @@ class InfantModel(mesa.Model):
         mesa.Model.__init__(self)
 
         if infant_params is None:
-            infant_params = InfantParams(perception, persistence, coordination)
+            infant_params = InfantParams(
+                Parameter(perception), Parameter(persistence), Parameter(coordination)
+            )
         self.next_agent_id = 0
 
         self.visualization_average_steps = visualization_average_steps
@@ -77,13 +80,13 @@ class InfantModel(mesa.Model):
         self.toys = []
         self.make_agents(infant_params)
 
-        self.explore_exploit_ratio = getattr(self.infant, "explore_exploit_ratio", -1.0)
-
         self.datacollector = mesa.DataCollector(
             model_reporters={
-                "explore-exploit-ratio": "explore_exploit_ratio",
-                "parent-visible": "parent_visible",
-                "infant-visible": "infant_visible",
+                "parent-visible": lambda m: int(getattr(m.infant, "parent_visible", 0)),
+                "infant-visible": lambda m: int(m.parent.infant_visible) / 2,
+                "perception": lambda m: m.infant.params.perception.e2,
+                "persistence": lambda m: m.infant.params.persistence.e2,
+                "coordination": lambda m: m.infant.params.coordination.e2,
             },
         )
 
@@ -121,10 +124,6 @@ class InfantModel(mesa.Model):
 
     def step(self):
         self.schedule.step()
-
-        self.explore_exploit_ratio = getattr(self.infant, "explore_exploit_ratio", -1.0)
-        self.parent_visible = int(getattr(self.infant, "parent_visible", 0))
-        self.infant_visible = int(self.parent.infant_visible) / 2
 
         self.datacollector.collect(self)
 

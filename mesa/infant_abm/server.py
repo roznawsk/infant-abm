@@ -7,13 +7,6 @@ from infant_abm.agents.toy import Toy
 import mesa
 
 
-# def get_parent_visible(model):
-#     return f"parent visible: {model.infant.parent_visible}"
-
-# def get_infant_visible(model):
-#     return f"infant visible: {model.parent.infant_visible}"
-
-
 def portrayal(agent):
     if issubclass(type(agent), InfantBase):
         return {
@@ -44,20 +37,17 @@ def portrayal(agent):
         }
 
 
-# parent_class = "MoverParent"
-parent_class = "VisionOnlyParent"
 # infant_class = "NoVisionInfant"
 infant_class = "SeqVisionInfant"
 
 
-def get_agent_classes(model):
-    return f"{parent_class}, {infant_class}"
+def get_infant_class(model):
+    return infant_class
 
 
 model_canvas = Canvas(portrayal, 650, 650)
 
 model_params = {
-    "parent_class": parent_class,
     "infant_class": infant_class,
     "perception": mesa.visualization.Slider("Perception", 0.5, 0.0, 1.0, 0.01),
     "persistence": mesa.visualization.Slider("Persistence", 0.5, 0.0, 1.0, 0.01),
@@ -74,7 +64,9 @@ visibility_chart = mesa.visualization.ChartModule(
 
 explore_exploit_chart = mesa.visualization.ChartModule(
     [
-        {"Label": "explore-exploit-ratio", "Color": "Black"},
+        {"Label": "perception", "Color": "Black"},
+        {"Label": "persistence", "Color": "Blue"},
+        {"Label": "coordination", "Color": "Green"},
     ],
     canvas_height=120,
 )
@@ -83,7 +75,7 @@ explore_exploit_chart = mesa.visualization.ChartModule(
 server = mesa.visualization.ModularServer(
     InfantModel,
     [
-        get_agent_classes,
+        get_infant_class,
         model_canvas,
         visibility_chart,
         explore_exploit_chart,

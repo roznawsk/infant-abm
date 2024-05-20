@@ -1,19 +1,12 @@
 import math
 import numpy as np
 
-from enum import Enum
 from dataclasses import dataclass
 
+from infant_abm.agents.infant import actions
 from infant_abm.agents.agent import Agent
 from infant_abm.agents.position import Position
 from infant_abm.agents.infant.parameter import Parameter
-
-
-class Action(Enum):
-    CRAWL = 1
-    LOOK_FOR_TOY = 2
-    INTERACT_WITH_TOY = 3
-    EVALUATE_TOY = 4
 
 
 @dataclass
@@ -51,41 +44,60 @@ class InfantBase(Agent):
         self.bonus_target = None
         self.satisfaction = []
 
-        self.next_action = Action.LOOK_FOR_TOY
+        self.next_action = actions.LookForToy()
 
     def step(self):
         self.satisfaction.append(0)
 
         self._before_step()
 
-        match self.next_action:
-            case Action.LOOK_FOR_TOY:
-                self._step_look_for_toy()
-            case Action.EVALUATE_TOY:
-                self._step_evaluate_toy()
-            case Action.CRAWL:
-                self._step_crawl()
-            case Action.INTERACT_WITH_TOY:
-                self._step_interact_with_toy()
+        next_action = self._perform_action(self.next_action)
+
+        assert issubclass(type(next_action), actions.Action)
+
+        self.next_action = next_action
+
+    def _perform_action(self, action):
+        match action:
+            case actions.LookForToy():
+                return self._step_look_for_toy(action)
+            case actions.EvaluateToy():
+                return self._step_evaluate_toy(action)
+            case actions.Crawl():
+                return self._step_crawl(action)
+            case actions.InteractWithToy():
+                return self._step_interact_with_toy(action)
+            case actions.EvaluateThrow():
+                return self._step_evaluate_throw(action)
 
     def _before_step(self):
         pass
 
-    def _step_crawl(self):
-        if math.dist(self.pos, self.target.pos) < self.toy_interaction_range:
-            self.next_action = Action.INTERACT_WITH_TOY
-            return
+    def _step_crawl(self, _action):
+        if self._target_in_range():
+            return actions.InteractWithToy()
 
         if self._gets_distracted():
             self.target = None
-            self.next_action = Action.LOOK_FOR_TOY
-            return
+            return actions.LookForToy()
 
+        self._move()
+        return actions.Crawl()
+
+    def _move(self):
         self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed
         self.move_agent(new_pos)
 
     def _toy_probability(self, toy):
         return np.power(
-            (toy.times_interacted_with + 1e-5), 2 * self.params.perception - 1
+            (toy.times_interacted_with + 1e-5), 2 * self.params.perception.e2 - 1
         )
+
+    def _gets_distracted(self):
+        if self.params.persistence.e1 == 1:
+            return True
+        return self.params.persistence.e2**self.distraction_exponent < np.random.rand()
+
+    def _target_in_range(self):
+        return math.dist(self.pos, self.target.pos) < self.toy_interaction_range

@@ -99,10 +99,13 @@ class InfantModel(mesa.Model):
 
         self._make_toys()
 
+        parent_x = np.random.uniform(0.25, 0.75) * Position.x_max
+        parent_y = np.random.uniform(0.25, 0.75) * Position.y_max
+
         parent = self.parent_class(
             model=self,
             unique_id=self._next_agent_id(),
-            pos=Position.random(),
+            pos=np.array([parent_x, parent_y]),
         )
         self.parent = parent
 

@@ -4,7 +4,7 @@ import math
 
 from infant_abm.agents.agent import Agent
 from infant_abm.agents.position import Position
-from infant_abm.agents.infant.events import ToySelected, ToyThrown
+from infant_abm.agents.infant.events import ToySelected, ToyThrown, ThrowEvaluation
 
 
 class Action(Enum):
@@ -57,6 +57,8 @@ class ParentBase(Agent):
                 self._handle_event_toy_thrown(event)
             case ToySelected():
                 self._handle_event_toy_selected(event)
+            case ThrowEvaluation():
+                self._handle_event_throw_evaluation(event)
 
     def _step_fetch_toy(self):
         toys = self.model.get_toys(self.pos, self.toy_interaction_range)
@@ -93,4 +95,7 @@ class ParentBase(Agent):
         pass
 
     def _handle_event_toy_selected(self, event):
+        pass
+
+    def _handle_event_throw_evaluation(self, event):
         pass

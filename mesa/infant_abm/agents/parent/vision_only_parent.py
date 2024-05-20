@@ -1,7 +1,7 @@
 import numpy as np
 
 from infant_abm.agents.parent_base import ParentBase, Action
-from infant_abm.agents.infant.events import ToyThrown, ToySelected
+from infant_abm.agents.infant.events import ToyThrown, ToySelected, ThrowEvaluation
 
 
 class VisionOnlyParent(ParentBase):
@@ -14,6 +14,10 @@ class VisionOnlyParent(ParentBase):
 
             if self.relevant_response_probability > np.random.rand():
                 self._find_toy_nearby()
+
+    def _handle_event_throw_evaluation(self, event: ThrowEvaluation):
+        if self.relevant_response_probability > np.random.rand():
+            self.rotate_towards(self.model.infant.pos)
 
     def _handle_event_toy_selected(self, event: ToySelected):
         if self.relevant_response_probability > np.random.rand():

@@ -73,17 +73,6 @@ class InfantBase(Agent):
     def _before_step(self):
         pass
 
-    def _step_crawl(self, _action):
-        if self._target_in_range():
-            return actions.InteractWithToy()
-
-        if self._gets_distracted():
-            self.target = None
-            return actions.LookForToy()
-
-        self._move()
-        return actions.Crawl()
-
     def _move(self):
         self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
         new_pos = self.pos + self.velocity * self.speed

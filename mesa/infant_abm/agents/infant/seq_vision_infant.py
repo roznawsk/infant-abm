@@ -1,18 +1,20 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant_base import InfantBase, Params, Action
-from infant_abm.agents.infant.events import ToySelected, ToyThrown
+from infant_abm.agents.infant_base import InfantBase, Params
+from infant_abm.agents.infant.events import ToySelected, ToyThrown, ThrowEvaluation
 from infant_abm.agents.position import Position
+from infant_abm.agents.infant import actions
 
 
 class SeqVisionInfant(InfantBase):
     # Agent constants
 
-    toy_evaluation_steps = 3
+    TOY_EVALUATION_DURATION = 3
+    THROW_EVALUATION_DURATION = 3
 
-    persistence_boost_duration = 20
-    boost_value = 0.2
+    PERSISTENCE_BOOST_DURATION = 20
+    BOOST_VALUE = 0.2
 
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
@@ -20,12 +22,11 @@ class SeqVisionInfant(InfantBase):
         self.parent_visible = False
 
         self.current_persistence_boost_duration = 0
-        self.current_evaluation_steps = 0
 
     def _before_step(self):
         self._update_parent_visible()
 
-    def _step_look_for_toy(self):
+    def _step_look_for_toy(self, _action):
         self.current_persistence_boost_duration = 0
         self.params.persistence.reset()
 
@@ -39,20 +40,20 @@ class SeqVisionInfant(InfantBase):
         self.target = target
         self.rotate_towards(target.pos)
 
-        self.current_evaluation_steps = 0
         self._start_evaluating_toy()
+        return actions.EvaluateToy()
 
-    def _step_evaluate_toy(self):
-        self.current_evaluation_steps += 1
-
+    def _step_evaluate_toy(self, action: actions.EvaluateToy):
         if self.parent_visible and self.model.parent.infant_visible:
-            self.params.persistence.boost(self.boost_value)
-            self.next_action = Action.CRAWL
-        elif self.current_evaluation_steps == self.toy_evaluation_steps:
-            self.next_action = Action.CRAWL
+            self.params.persistence.boost(self.BOOST_VALUE)
+            return actions.Crawl()
+        elif action.duration == self.TOY_EVALUATION_DURATION:
+            return actions.Crawl()
+        else:
+            return actions.EvaluateToy(action.duration + 1)
 
-    def _step_interact_with_toy(self):
-        # TODO: add new step, where we try to establish eye contact with the parent
+    def _step_interact_with_toy(self, _action):
+        self.params.coordination.reset()
         throw_direction = None
 
         if self.params.coordination.e2 > np.random.rand():
@@ -80,33 +81,46 @@ class SeqVisionInfant(InfantBase):
         self.target = None
         self.bonus_target = None
 
-        self.next_action = Action.LOOK_FOR_TOY
+        return actions.LookForToy()
 
-    def _step_crawl(self):
-        super()._step_crawl()
+    def _step_crawl(self, _action):
+        if self._target_in_range():
+            self._start_evaluating_throw()
+            return actions.EvaluateThrow()
+
+        if self._gets_distracted():
+            self.target = None
+            return actions.LookForToy()
+
+        self._move()
 
         self.current_persistence_boost_duration += 1
-        if self.current_persistence_boost_duration == self.persistence_boost_duration:
+        if self.current_persistence_boost_duration == self.PERSISTENCE_BOOST_DURATION:
             self.params.persistence.reset()
 
-    def _toy_probability(self, toy):
-        return np.power(
-            (toy.times_interacted_with + 1e-5), 2 * self.params.perception.e1 - 1
-        )
+        return actions.Crawl()
 
-    def _gets_distracted(self):
-        if self.params.persistence.e1 == 1:
-            return True
-        return self.params.persistence.e2**self.distraction_exponent < np.random.rand()
+    def _step_evaluate_throw(self, action: actions.EvaluateThrow):
+        if self.parent_visible and self.model.parent.infant_visible:
+            self.params.coordination.boost(self.BOOST_VALUE)
+            return actions.InteractWithToy()
+        elif action.duration == self.TOY_EVALUATION_DURATION:
+            return actions.InteractWithToy()
+        else:
+            return actions.EvaluateThrow(action.duration + 1)
+
+    # Helper functions
+
+    def _start_evaluating_toy(self):
+        if 0.5 > np.random.rand():
+            self.rotate_towards(self.model.parent.pos)
+            self.model.parent.handle_event(ToySelected(self.target))
+
+    def _start_evaluating_throw(self):
+        if 0.5 > np.random.rand():
+            self.rotate_towards(self.model.parent.pos)
+            self.model.parent.handle_event(ThrowEvaluation())
 
     def _update_parent_visible(self):
         parent_angle = Position.angle(self.pos, self.model.parent.pos)
         self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
-
-    def _start_evaluating_toy(self):
-        self.next_action = Action.EVALUATE_TOY
-
-        if 0.5 > np.random.rand():
-            self.rotate_towards(self.model.parent.pos)
-
-            self.model.parent.handle_event(ToySelected(self.target))

@@ -1,19 +1,20 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant_base import InfantBase, Params, Action
+from infant_abm.agents.infant_base import InfantBase, Params
 from infant_abm.agents.infant.events import ToySelected, ToyThrown
 from infant_abm.agents.position import Position
+from infant_abm.agents.infant import actions
 
 
 class NoVisionInfant(InfantBase):
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
 
-    def _step_interact_with_toy(self):
+    def _step_interact_with_toy(self, _action):
         throw_direction = None
 
-        if self.params.coordination > np.random.rand():
+        if self.params.coordination.e2 > np.random.rand():
             parent_dist = math.dist(self.pos, self.model.parent.pos)
             throw_range = min(self.toy_throw_range, parent_dist)
             throw_direction = (
@@ -38,9 +39,9 @@ class NoVisionInfant(InfantBase):
         self.target = None
         self.bonus_target = None
 
-        self.next_action = Action.LOOK_FOR_TOY
+        return actions.LookForToy()
 
-    def _step_look_for_toy(self):
+    def _step_look_for_toy(self, _action):
         toys = self.model.get_toys()
 
         probabilities = np.array([self._toy_probability(toy) for toy in toys])
@@ -49,10 +50,16 @@ class NoVisionInfant(InfantBase):
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
-        self.next_action = Action.CRAWL
         self.model.parent.handle_event(ToySelected(self.target))
+        return actions.Crawl()
 
-    def _gets_distracted(self):
-        if self.params.persistence == 0:
-            return True
-        return self.params.persistence**self.distraction_exponent < np.random.rand()
+    def _step_crawl(self, _action):
+        if self._target_in_range():
+            return actions.InteractWithToy()
+
+        if self._gets_distracted():
+            self.target = None
+            return actions.LookForToy()
+
+        self._move()
+        return actions.Crawl()

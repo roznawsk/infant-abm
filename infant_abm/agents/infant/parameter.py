@@ -14,3 +14,10 @@ class Parameter:
     def boost(self, value):
         self.e2 = min(1.0, self.e2 + value)
         self.e1 = 1 - self.e2
+
+    def __repr__(self):
+        return f"e2={self.e2}"
+
+    def __eq__(self, other) -> bool:
+        assert isinstance(other, Parameter)
+        return self.__dict__ == other.__dict__

@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 import tqdm
+import warnings
 
 
 from infant_abm.model import InfantModel
@@ -100,7 +101,8 @@ class Simulation:
         out_df = pd.DataFrame(results_np, columns=columns)
 
         # We use hdf, because writing arrays into csv is troublesome
-        out_df.to_hdf(self.output_path, "hdfkey")
+        warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
+        out_df.to_hdf(self.output_path, key="hdfkey")
 
     def _run_param_set(self, param_set):
         run_results = []

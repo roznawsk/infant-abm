@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import dataclasses
 
 from dataclasses import dataclass
 
@@ -15,6 +16,14 @@ class Params:
     coordination: Parameter
 
     @staticmethod
+    def new(perception, persistence, coordination):
+        return Params(
+            perception=Parameter(perception),
+            persistence=Parameter(persistence),
+            coordination=Parameter(coordination),
+        )
+
+    @staticmethod
     def from_array(array):
         c, s, o = array
         return Params(
@@ -23,6 +32,18 @@ class Params:
 
     def to_array(self):
         return np.array([self.perception.e1, self.persistence.e1, self.coordination.e1])
+
+    def reset(self):
+        fields = dataclasses.fields(self)
+        for f in fields:
+            getattr(self, f.name).reset()
+
+    def __repr__(self):
+        return f"Params({self.perception}, {self.persistence}, {self.coordination})"
+
+    def __eq__(self, other) -> bool:
+        assert isinstance(other, Params)
+        return self.__dict__ == other.__dict__
 
 
 class InfantBase(Agent):

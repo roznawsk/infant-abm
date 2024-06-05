@@ -12,7 +12,6 @@ def run_basic_scenario(output_path):
         iterations=iterations,
         repeats=repeats,
         output_path=output_path,
-        # display=False,
     )
 
     simulation.run()

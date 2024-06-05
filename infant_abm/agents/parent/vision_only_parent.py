@@ -24,7 +24,7 @@ class VisionOnlyParent(ParentBase):
             self.rotate_towards(self.model.infant.pos)
 
     def _find_toy_nearby(self):
-        toys = self.model.get_toys(self.pos, self.toy_interaction_range)
+        toys = self.model.get_toys(self.pos, self.TOY_INTERACTION_RANGE)
 
         if not toys:
             return

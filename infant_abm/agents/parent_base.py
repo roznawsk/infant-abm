@@ -19,9 +19,9 @@ class ParentBase(Agent):
     responsiveness = 0.5
     relevant_response_probability = 0.5
 
-    speed = 5
-    toy_interaction_range = 10
-    toy_throw_range = 20
+    SPEED = 5
+    TOY_INTERACTION_RANGE = 10
+    TOY_THROW_RANGE = 20
 
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model, pos)
@@ -61,20 +61,20 @@ class ParentBase(Agent):
                 self._handle_event_throw_evaluation(event)
 
     def _step_fetch_toy(self):
-        toys = self.model.get_toys(self.pos, self.toy_interaction_range)
+        toys = self.model.get_toys(self.pos, self.TOY_INTERACTION_RANGE)
 
         if self.target in toys:
             self.next_action = Action.PASS_TOY
             return
 
         self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
-        new_pos = self.pos + self.velocity * self.speed
+        new_pos = self.pos + self.velocity * self.SPEED
         self.move_agent(new_pos)
 
     def _step_pass_toy(self):
         throw_direction = Position.calc_norm_vector(
             self.pos, self.model.infant.pos
-        ) * min(self.toy_throw_range, math.dist(self.pos, self.model.infant.pos))
+        ) * min(self.TOY_THROW_RANGE, math.dist(self.pos, self.model.infant.pos))
 
         new_pos = self.pos + throw_direction
         self.target.move_agent(new_pos)

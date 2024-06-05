@@ -1,10 +1,9 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant_base import InfantBase, Params
+from infant_abm.agents.infant import InfantBase, Params, actions
 from infant_abm.agents.infant.events import ToySelected, ToyThrown
 from infant_abm.agents.position import Position
-from infant_abm.agents.infant import actions
 
 
 class NoVisionInfant(InfantBase):
@@ -16,14 +15,14 @@ class NoVisionInfant(InfantBase):
 
         if self.params.coordination.e2 > np.random.rand():
             parent_dist = math.dist(self.pos, self.model.parent.pos)
-            throw_range = min(self.toy_throw_range, parent_dist)
+            throw_range = min(self.TOY_THROW_RANGE, parent_dist)
             throw_direction = (
                 Position.calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
             )
         else:
             throw_direction = np.random.rand(2)
             throw_direction = (
-                throw_direction / np.linalg.norm(throw_direction) * self.toy_throw_range
+                throw_direction / np.linalg.norm(throw_direction) * self.TOY_THROW_RANGE
             )
 
         new_pos = self.target.pos + throw_direction

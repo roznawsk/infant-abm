@@ -3,10 +3,9 @@ import numpy as np
 
 from dataclasses import dataclass
 
-from infant_abm.agents.infant import actions
+from infant_abm.agents.infant import actions, Parameter
 from infant_abm.agents.agent import Agent
 from infant_abm.agents.position import Position
-from infant_abm.agents.infant.parameter import Parameter
 
 
 @dataclass
@@ -29,11 +28,11 @@ class Params:
 class InfantBase(Agent):
     # Agent constants
 
-    speed = 1
-    toy_interaction_range = 2
-    toy_throw_range = 10
+    SPEED = 1
+    TOY_INTERACTION_RANGE = 2
+    TOY_THROW_RANGE = 10
 
-    distraction_exponent = 1 / 25
+    DISTRACTION_EXPONENT = 1 / 25
 
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos)
@@ -75,7 +74,7 @@ class InfantBase(Agent):
 
     def _move(self):
         self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)
-        new_pos = self.pos + self.velocity * self.speed
+        new_pos = self.pos + self.velocity * self.SPEED
         self.move_agent(new_pos)
 
     def _toy_probability(self, toy):
@@ -86,7 +85,7 @@ class InfantBase(Agent):
     def _gets_distracted(self):
         if self.params.persistence.e1 == 1:
             return True
-        return self.params.persistence.e2**self.distraction_exponent < np.random.rand()
+        return self.params.persistence.e2**self.DISTRACTION_EXPONENT < np.random.rand()
 
     def _target_in_range(self):
-        return math.dist(self.pos, self.target.pos) < self.toy_interaction_range
+        return math.dist(self.pos, self.target.pos) < self.TOY_INTERACTION_RANGE

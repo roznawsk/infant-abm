@@ -1,6 +1,6 @@
 from infant_abm.model import InfantModel
 from infant_abm.canvas import Canvas
-from infant_abm.agents.infant_base import InfantBase
+from infant_abm.agents.infant import InfantBase
 from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.toy import Toy
 

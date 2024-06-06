@@ -2,8 +2,7 @@ import numpy as np
 import itertools
 import warnings
 
-from simulation import Simulation
-from infant_abm.agents.infant import Params as InfantParams
+from infant_abm import Simulation, Config, InfantParams
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -24,23 +23,24 @@ def get_model_param_sets(linspace, base_params=dict()):
     return params
 
 
-def run_basic_simulation():
-    repeats = 11
-    iterations = 2000
-    output_path = "../results/run_no_eye_contact.hdf"
+def run_basic_simulation(filename, base_params=dict()):
+    repeats = 21
+    iterations = 20000
 
-    parameter_sets = get_model_param_sets((0, 1, 8))
+    parameter_sets = get_model_param_sets((0.1, 0.9, 3), base_params=base_params)
 
     simulation = Simulation(
         model_param_sets=parameter_sets,
         iterations=iterations,
         repeats=repeats,
-        output_path=output_path,
+        output_path=filename,
         display=True,
     )
 
     simulation.run()
     simulation.save()
+
+    return simulation
 
 
 def run_comparative_simulation():
@@ -69,4 +69,33 @@ def run_comparative_simulation():
 
 if __name__ == "__main__":
     # run_basic_simulation()
-    run_comparative_simulation()
+    # run_comparative_simulation()
+
+    for boost in range(8):
+        params = {
+            "config": Config(
+                persistence_boost_value=boost / 10,
+                coordination_boost_value=0.2,
+            )
+        }
+        run_basic_simulation(
+            f"./results/persi_3x3_new/boost_0{str(boost)}.hdf", base_params=params
+        )
+
+    # repeats = 3
+    # iterations = 10000
+
+    # parameter_sets = [{
+    #     "infant_params": InfantParams.new(0.5, 0.5, 0.5),
+    #     "config": Config(persistence_boost_value=0.5)
+    # }]
+
+    # simulation = Simulation(
+    #     model_param_sets=parameter_sets,
+    #     iterations=iterations,
+    #     repeats=repeats,
+    #     output_path=None,
+    #     display=True,
+    # )
+
+    # simulation.run()

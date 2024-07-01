@@ -15,6 +15,7 @@ class SeqVisionInfant(InfantBase):
 
     PERSISTENCE_BOOST_DURATION = 20
     BOOST_VALUE = 0.2
+    COORDINATION_BOOST_VALUE = 0.5
 
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
@@ -102,7 +103,7 @@ class SeqVisionInfant(InfantBase):
 
     def _step_evaluate_throw(self, action: actions.EvaluateThrow):
         if self.parent_visible and self.model.parent.infant_visible:
-            self.params.coordination.boost(self.BOOST_VALUE)
+            self.params.coordination.boost(self.COORDINATION_BOOST_VALUE)
             return actions.InteractWithToy()
         elif action.duration == self.TOY_EVALUATION_DURATION:
             return actions.InteractWithToy()

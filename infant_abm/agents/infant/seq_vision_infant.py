@@ -6,15 +6,25 @@ from infant_abm.agents.infant.events import ToySelected, ToyThrown, ThrowEvaluat
 from infant_abm.agents.position import Position
 from infant_abm.agents.infant import actions
 
+from infant_abm.utils import chance
+
 
 class SeqVisionInfant(InfantBase):
     # Agent constants
 
     TOY_EVALUATION_DURATION = 3
-    THROW_EVALUATION_DURATION = 3
+    THROW_EVALUATION_DURATION = 20
 
     PERSISTENCE_BOOST_DURATION = 20
-    BOOST_VALUE = 0.2
+
+    COORDINATION_BOOST_VALUE = 0.2
+    PERSISTENCE_BOOST_VALUE = 0.2
+
+    TOY_EVALUATION_PARENT_CHANCE = 0.7
+    TOY_EVALUATION_INFANT_CHANCE = 0.7
+
+    THROW_EVALUATION_PARENT_CHANCE = 0.7
+    THROW_EVALUATION_INFANT_CHANCE = 0.7
 
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
@@ -40,16 +50,21 @@ class SeqVisionInfant(InfantBase):
         self.target = target
         self.rotate_towards(target.pos)
 
-        self._start_evaluating_toy()
         return actions.EvaluateToy()
 
     def _step_evaluate_toy(self, action: actions.EvaluateToy):
         if self.parent_visible and self.model.parent.infant_visible:
-            self.params.persistence.boost(self.BOOST_VALUE)
+            self.params.persistence.boost(self.PERSISTENCE_BOOST_VALUE)
             return actions.Crawl()
         elif action.duration == self.TOY_EVALUATION_DURATION:
             return actions.Crawl()
         else:
+            if chance(self.TOY_EVALUATION_INFANT_CHANCE, self.TOY_EVALUATION_DURATION):
+                self.rotate_towards(self.model.parent.pos)
+
+            if chance(self.TOY_EVALUATION_PARENT_CHANCE, self.TOY_EVALUATION_DURATION):
+                self.model.parent.handle_event(ToySelected(self.target))
+
             return actions.EvaluateToy(action.duration + 1)
 
     def _step_interact_with_toy(self, _action):
@@ -102,19 +117,24 @@ class SeqVisionInfant(InfantBase):
 
     def _step_evaluate_throw(self, action: actions.EvaluateThrow):
         if self.parent_visible and self.model.parent.infant_visible:
-            self.params.coordination.boost(self.BOOST_VALUE)
+            self.params.coordination.boost(self.COORDINATION_BOOST_VALUE)
             return actions.InteractWithToy()
         elif action.duration == self.TOY_EVALUATION_DURATION:
             return actions.InteractWithToy()
         else:
+            if chance(
+                self.THROW_EVALUATION_INFANT_CHANCE, self.THROW_EVALUATION_DURATION
+            ):
+                self.rotate_towards(self.model.parent.pos)
+
+            if chance(
+                self.THROW_EVALUATION_PARENT_CHANCE, self.THROW_EVALUATION_DURATION
+            ):
+                self.model.parent.handle_event(ThrowEvaluation())
+
             return actions.EvaluateThrow(action.duration + 1)
 
     # Helper functions
-
-    def _start_evaluating_toy(self):
-        if 0.5 > np.random.rand():
-            self.rotate_towards(self.model.parent.pos)
-            self.model.parent.handle_event(ToySelected(self.target))
 
     def _start_evaluating_throw(self):
         if 0.5 > np.random.rand():

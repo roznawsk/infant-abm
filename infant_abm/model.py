@@ -16,8 +16,9 @@ from infant_abm.agents.infant import NoVisionInfant, SeqVisionInfant, Parameter
 from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.parent import MoverParent, VisionOnlyParent
 
-
 from infant_abm.agents import Toy, Position
+
+from infant_abm.config import Config
 
 
 class InfantModel(mesa.Model):
@@ -33,7 +34,7 @@ class InfantModel(mesa.Model):
         visualization_average_steps=300,
         infant_class="SeqVisionInfant",
         parent_class="VisionOnlyParent",
-        config=None,
+        config=Config(),
         infant_params=None,
         perception=None,
         persistence=None,
@@ -71,6 +72,9 @@ class InfantModel(mesa.Model):
                 self.infant_class = NoVisionInfant
             case "SeqVisionInfant":
                 self.infant_class = SeqVisionInfant
+
+        self.config = config
+        self._apply_config(config)
 
         self.toys = []
         self.make_agents(infant_params)
@@ -164,3 +168,9 @@ class InfantModel(mesa.Model):
         agent_id = self.next_agent_id
         self.next_agent_id += 1
         return agent_id
+
+    def _apply_config(self, config):
+        if config.coordination_boost_value:
+            self.infant_class.COORDINATION_BOOST_VALUE = config.coordination_boost_value
+        if config.persistence_boost_value:
+            self.infant_class.PERSISTENCE_BOOST_VALUE = config.persistence_boost_value

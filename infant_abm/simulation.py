@@ -7,6 +7,8 @@ import pandas as pd
 import tqdm
 import warnings
 
+from copy import deepcopy
+from collections import Counter
 
 from infant_abm.model import InfantModel
 from infant_abm.utils import moving_average
@@ -18,6 +20,7 @@ class RunResult:
     repeats: int
     iterations: int
     goal_dist: np.ndarray
+    actions: np.ndarray
     parent_tps: np.ndarray
     infant_tps: np.ndarray
 
@@ -42,6 +45,7 @@ class RunResult:
             "repeats",
             "iterations",
             "goal_distance",
+            "actions",
             "parent_tps",
             "infant_tps",
         ]
@@ -51,6 +55,7 @@ class RunResult:
             self.repeats,
             self.iterations,
             self.goal_dist,
+            self.actions,
             self.parent_tps,
             self.infant_tps,
         ]
@@ -107,16 +112,23 @@ class Simulation:
     def _run_param_set(self, param_set):
         run_results = []
 
+        result_param_set = deepcopy(param_set)
+
         for _ in range(self.repeats):
             run_results.append(self._single_run_param_set(param_set))
 
+        goal_dist, infant_actions, infant_satisfaction, parent_satisfaction = zip(
+            *run_results
+        )
+
         return RunResult(
-            parameter_set=param_set,
+            parameter_set=result_param_set,
             repeats=self.repeats,
             iterations=self.iterations,
-            goal_dist=np.average([s["goal_dist"] for s in run_results], axis=0),
-            parent_tps=np.average([s["parent"] for s in run_results], axis=0),
-            infant_tps=np.average([s["infant"] for s in run_results], axis=0),
+            goal_dist=np.average(goal_dist, axis=0),
+            actions=dict(sum(infant_actions, Counter())),
+            parent_tps=np.average(infant_satisfaction, axis=0),
+            infant_tps=np.average(parent_satisfaction, axis=0),
         )
 
     def _single_run_param_set(self, param_set):
@@ -128,8 +140,9 @@ class Simulation:
             model.step()
             goal_dist.append(model.get_middle_dist())
 
-        return {
-            "goal_dist": goal_dist,
-            "parent": model.parent.satisfaction,
-            "infant": model.infant.satisfaction,
-        }
+        return (
+            goal_dist,
+            model.infant.actions,
+            model.infant.satisfaction,
+            model.parent.satisfaction,
+        )

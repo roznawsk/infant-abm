@@ -3,6 +3,7 @@ import numpy as np
 import dataclasses
 
 from dataclasses import dataclass
+from collections import Counter
 
 from infant_abm.agents.infant import actions, Parameter
 from infant_abm.agents.agent import Agent
@@ -63,11 +64,13 @@ class InfantBase(Agent):
         self.target = None
         self.bonus_target = None
         self.satisfaction = []
+        self.actions = Counter()
 
         self.next_action = actions.LookForToy()
 
     def step(self):
         self.satisfaction.append(0)
+        self.actions[self.next_action.__class__.__name__] += 1
 
         self._before_step()
 

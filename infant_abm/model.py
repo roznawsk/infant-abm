@@ -8,22 +8,16 @@ import math
 import mesa
 import numpy as np
 
-from infant_abm.agents.infant_base import InfantBase
-from infant_abm.agents.infant_base import Params as InfantParams
+from infant_abm.agents.infant import InfantBase
+from infant_abm.agents.infant import Params as InfantParams
 
-from infant_abm.agents.infant.no_vision_infant import NoVisionInfant
-from infant_abm.agents.infant.seq_vision_infant import SeqVisionInfant
-from infant_abm.agents.infant.parameter import Parameter
+from infant_abm.agents.infant import NoVisionInfant, SeqVisionInfant, Parameter
 
 from infant_abm.agents.parent_base import ParentBase
-from infant_abm.agents.parent.mover_parent import MoverParent
-from infant_abm.agents.parent.vision_only_parent import VisionOnlyParent
+from infant_abm.agents.parent import MoverParent, VisionOnlyParent
 
 
-from infant_abm.agents.toy import Toy
-
-
-from infant_abm.agents.position import Position
+from infant_abm.agents import Toy, Position
 
 
 class InfantModel(mesa.Model):
@@ -39,6 +33,7 @@ class InfantModel(mesa.Model):
         visualization_average_steps=300,
         infant_class="SeqVisionInfant",
         parent_class="VisionOnlyParent",
+        config=None,
         infant_params=None,
         perception=None,
         persistence=None,

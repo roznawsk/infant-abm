@@ -3,7 +3,7 @@ import itertools
 import warnings
 
 from simulation import Simulation
-from infant_abm.agents.infant_base import Params as InfantParams
+from infant_abm.agents.infant import Params as InfantParams
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 

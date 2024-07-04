@@ -2,6 +2,8 @@ import numpy as np
 import itertools
 import warnings
 
+from pathlib import Path
+
 from infant_abm import Simulation, Config, InfantParams
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -23,12 +25,7 @@ def get_model_param_sets(linspace, base_params=dict()):
     return params
 
 
-def run_basic_simulation(filename, base_params=dict()):
-    repeats = 21
-    iterations = 20000
-
-    parameter_sets = get_model_param_sets((0.1, 0.9, 3), base_params=base_params)
-
+def run_basic_simulation(filename, parameter_sets, repeats=13, iterations=10000):
     simulation = Simulation(
         model_param_sets=parameter_sets,
         iterations=iterations,
@@ -43,7 +40,7 @@ def run_basic_simulation(filename, base_params=dict()):
     return simulation
 
 
-def run_comparative_simulation():
+def run_comparative_agent_simulation():
     repeats = 7
     iterations = 5000
 
@@ -67,35 +64,49 @@ def run_comparative_simulation():
             simulation.save()
 
 
+def run_comparative_boost_simulation():
+    repeats = 11
+    iterations = 20000
+    linspace = (0.05, 0.95, 10)
+    boosted_parameter = "persistence"
+    boost_name = f"{boosted_parameter}_boost_value"
+    boost_values = [0.15, 0.45]
+
+    default_boosts = {"persistence_boost_value": 0.5, "coordination_boost_value": 0.2}
+
+    linspace_str = (
+        str(linspace)
+        .replace("(", "_")
+        .replace(")", "")
+        .replace(" ", "")
+        .replace(".", "")
+        .replace(",", "_")
+    )
+
+    dir_path = f"./results/{boosted_parameter}{linspace_str}"
+    Path(dir_path).mkdir(parents=False, exist_ok=False)
+
+    for boost_value in boost_values:
+        boosts = default_boosts
+        boosts[boost_name] = boost_value
+
+        parameter_sets = get_model_param_sets(
+            linspace, base_params={"config": Config(**boosts)}
+        )
+
+        boost_value_str = f"{boosted_parameter[:5]}{round(boost_value * 100):03d}"
+
+        filename = f"{dir_path}/{boost_value_str}.hdf"
+
+        run_basic_simulation(
+            filename=filename,
+            parameter_sets=parameter_sets,
+            repeats=repeats,
+            iterations=iterations,
+        )
+
+
 if __name__ == "__main__":
     # run_basic_simulation()
     # run_comparative_simulation()
-
-    for boost in range(8):
-        params = {
-            "config": Config(
-                persistence_boost_value=boost / 10,
-                coordination_boost_value=0.2,
-            )
-        }
-        run_basic_simulation(
-            f"./results/persi_3x3_new/boost_0{str(boost)}.hdf", base_params=params
-        )
-
-    # repeats = 3
-    # iterations = 10000
-
-    # parameter_sets = [{
-    #     "infant_params": InfantParams.new(0.5, 0.5, 0.5),
-    #     "config": Config(persistence_boost_value=0.5)
-    # }]
-
-    # simulation = Simulation(
-    #     model_param_sets=parameter_sets,
-    #     iterations=iterations,
-    #     repeats=repeats,
-    #     output_path=None,
-    #     display=True,
-    # )
-
-    # simulation.run()
+    run_comparative_boost_simulation()

@@ -68,7 +68,7 @@ def run_comparative_boost_simulation():
     repeats = 11
     iterations = 20000
     linspace = (0.05, 0.95, 10)
-    boosted_parameter = "persistence"
+    boosted_parameter = "coordination"
     boost_name = f"{boosted_parameter}_boost_value"
     boost_values = [0.15, 0.45]
 

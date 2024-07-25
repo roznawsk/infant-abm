@@ -74,6 +74,10 @@ explore_exploit_chart = mesa.visualization.ChartModule(
     canvas_height=120,
 )
 
+goal_dist_chart = mesa.visualization.ChartModule(
+    [{"Label": "goal_dist", "Color": "Black"}]
+)
+
 
 server = mesa.visualization.ModularServer(
     InfantModel,
@@ -82,6 +86,7 @@ server = mesa.visualization.ModularServer(
         model_canvas,
         visibility_chart,
         explore_exploit_chart,
+        goal_dist_chart,
     ],
     "Infant ABM",
     model_params,

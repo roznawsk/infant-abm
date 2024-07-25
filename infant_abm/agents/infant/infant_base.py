@@ -26,13 +26,15 @@ class Params:
 
     @staticmethod
     def from_array(array):
-        c, s, o = array
+        pc, pr, co = array
         return Params(
-            perception=Parameter(c), persistence=Parameter(s), coordination=Parameter(o)
+            perception=Parameter(pc),
+            persistence=Parameter(pr),
+            coordination=Parameter(co),
         )
 
     def to_array(self):
-        return np.array([self.perception.e1, self.persistence.e1, self.coordination.e1])
+        return np.array([self.perception.e2, self.persistence.e2, self.coordination.e2])
 
     def reset(self):
         fields = dataclasses.fields(self)

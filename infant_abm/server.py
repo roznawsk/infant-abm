@@ -3,6 +3,7 @@ from infant_abm.canvas import Canvas
 from infant_abm.agents.infant import InfantBase
 from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.toy import Toy
+from infant_abm.config import Config
 
 import mesa
 
@@ -40,6 +41,8 @@ def portrayal(agent):
 # infant_class = "NoVisionInfant"
 infant_class = "SeqVisionInfant"
 
+config = Config(persistence_boost_value=0.3, coordination_boost_value=0.5)
+
 
 def get_infant_class(model):
     return infant_class
@@ -49,6 +52,7 @@ model_canvas = Canvas(portrayal, 650, 650)
 
 model_params = {
     "infant_class": infant_class,
+    "config": config,
     "perception": mesa.visualization.Slider("Perception", 0.5, 0.0, 1.0, 0.01),
     "persistence": mesa.visualization.Slider("Persistence", 0.5, 0.0, 1.0, 0.01),
     "coordination": mesa.visualization.Slider("Coordination", 0.5, 0.0, 1.0, 0.01),

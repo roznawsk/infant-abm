@@ -20,14 +20,12 @@ def get_model_param_sets(linspace, base_params=dict()):
     for param_set in itertools.product(*[perception, persistence, coordination]):
         i_params = InfantParams.from_array(param_set)
 
-        # print(i_params.to_array())
-
         params.append({**base_params, "infant_params": i_params})
 
     return params
 
 
-def run_basic_simulation(filename, parameter_sets, repeats=13, iterations=10000):
+def run_basic_simulation(filename, parameter_sets, repeats=13, iterations=20000):
     simulation = Simulation(
         model_param_sets=parameter_sets,
         iterations=iterations,
@@ -106,6 +104,8 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
-    # run_basic_simulation()
+    run_basic_simulation(
+        filename="basic", parameter_sets=get_model_param_sets((0.1, 0.9, 5)), repeats=5
+    )
     # run_comparative_simulation()
-    run_comparative_boost_simulation()
+    # run_comparative_boost_simulation()

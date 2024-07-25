@@ -52,7 +52,7 @@ def test_basic_simulation():
 
 
 def test_changing_global_params():
-    infant_params = InfantParams.new(0.5, 0.0, 0.0)
+    infant_params = InfantParams.new(0.5, 0.05, 0.05)
 
     config = Config(persistence_boost_value=0.0)
     simulation = run_basic_scenario(infant_params=infant_params, config=Config)

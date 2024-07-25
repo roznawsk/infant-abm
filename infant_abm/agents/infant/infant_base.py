@@ -66,6 +66,7 @@ class InfantBase(Agent):
         self.target = None
         self.bonus_target = None
         self.satisfaction = []
+        self.positions = np.array([self.pos])
         self.actions = Counter()
 
         self.next_action = actions.LookForToy()
@@ -77,6 +78,7 @@ class InfantBase(Agent):
         self._before_step()
 
         next_action = self._perform_action(self.next_action)
+        self.positions = np.append(self.positions, [self.pos], axis=0)
 
         assert issubclass(type(next_action), actions.Action)
 

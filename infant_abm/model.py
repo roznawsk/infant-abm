@@ -83,9 +83,8 @@ class InfantModel(mesa.Model):
             model_reporters={
                 "parent-visible": lambda m: int(getattr(m.infant, "parent_visible", 0)),
                 "infant-visible": lambda m: int(m.parent.infant_visible) / 2,
-                "perception": lambda m: m.infant.params.perception.e2,
-                "persistence": lambda m: m.infant.params.persistence.e2,
-                "coordination": lambda m: m.infant.params.coordination.e2,
+                "heading": lambda m: m.infant.params.persistence.e2,
+                "throwing": lambda m: m.infant.params.coordination.e2,
             },
         )
 

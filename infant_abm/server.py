@@ -68,9 +68,8 @@ visibility_chart = mesa.visualization.ChartModule(
 
 explore_exploit_chart = mesa.visualization.ChartModule(
     [
-        {"Label": "perception", "Color": "Black"},
-        {"Label": "persistence", "Color": "Blue"},
-        {"Label": "coordination", "Color": "Green"},
+        {"Label": "heading", "Color": "Blue"},
+        {"Label": "throwing", "Color": "Green"},
     ],
     canvas_height=120,
 )

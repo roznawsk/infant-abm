@@ -11,7 +11,7 @@ import numpy as np
 from infant_abm.agents.infant import InfantBase
 from infant_abm.agents.infant import Params as InfantParams
 
-from infant_abm.agents.infant import NoVisionInfant, SeqVisionInfant, Parameter
+from infant_abm.agents.infant import NoVisionInfant, SeqVisionInfant
 
 from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.parent import MoverParent, VisionOnlyParent

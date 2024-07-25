@@ -47,8 +47,8 @@ class InfantModel(mesa.Model):
         mesa.Model.__init__(self)
 
         if infant_params is None:
-            infant_params = InfantParams(
-                Parameter(perception), Parameter(persistence), Parameter(coordination)
+            infant_params = InfantParams.from_array(
+                [perception, persistence, coordination]
             )
         self.next_agent_id = 0
 
@@ -85,6 +85,7 @@ class InfantModel(mesa.Model):
                 "infant-visible": lambda m: int(m.parent.infant_visible) / 2,
                 "heading": lambda m: m.infant.params.persistence.e2,
                 "throwing": lambda m: m.infant.params.coordination.e2,
+                "goal_dist": lambda m: m.get_middle_dist(),
             },
         )
 

@@ -51,7 +51,6 @@ class RunResult:
         ]
 
     def to_list(self):
-        print(self.parameter_set["infant_params"].to_array())
         return list(self.parameter_set["infant_params"].to_array()) + [
             self.repeats,
             self.iterations,
@@ -90,11 +89,6 @@ class Simulation:
         pool = multiprocessing.Pool()
         results = []
 
-        print("dupa")
-
-        for r in self.parameter_sets:
-            print(r["infant_params"].to_array())
-
         for i, res in enumerate(
             tqdm.tqdm(
                 pool.imap(self._run_param_set, self.parameter_sets, chunksize=1),
@@ -102,9 +96,6 @@ class Simulation:
                 disable=not self.display,
             )
         ):
-            # if 0.0 in res.parameter_set["infant_params"].to_array():
-            #     raise RuntimeError
-
             res.parameter_set = self.parameter_sets[i]
             results.append(res)
 
@@ -114,9 +105,6 @@ class Simulation:
     def save(self):
         columns = self.results[0].get_columns()
         results_np = [r.to_list() for r in self.results]
-
-        for r in results_np:
-            print(r[:3])
 
         out_df = pd.DataFrame(results_np, columns=columns)
 

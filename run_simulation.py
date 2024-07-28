@@ -106,13 +106,13 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
-    linspace = (0.1, 0.9, 5)
+    linspace = (0.1, 0.9, 3)
 
     dir_path = f"./results/basic{get_linspace_str(linspace)}"
     Path(dir_path).mkdir(parents=False, exist_ok=True)
 
     run_basic_simulation(
-        filename=f"{dir_path}/basic2.hdf",
+        filename=f"{dir_path}/basic.hdf",
         parameter_sets=get_model_param_sets(linspace),
         iterations=20000,
         repeats=4,

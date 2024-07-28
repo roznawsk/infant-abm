@@ -7,16 +7,15 @@ A Mesa implementation of Infant ABM Model
 import math
 import mesa
 import numpy as np
+import warnings
 
-from infant_abm.agents.infant import InfantBase
+from infant_abm.agents import Toy, Position
+
 from infant_abm.agents.infant import Params as InfantParams
-
-from infant_abm.agents.infant import NoVisionInfant, SeqVisionInfant
+from infant_abm.agents.infant import InfantBase, NoVisionInfant, SeqVisionInfant
 
 from infant_abm.agents.parent_base import ParentBase
 from infant_abm.agents.parent import MoverParent, VisionOnlyParent
-
-from infant_abm.agents import Toy, Position
 
 from infant_abm.config import Config
 
@@ -77,7 +76,10 @@ class InfantModel(mesa.Model):
         self._apply_config(config)
 
         self.toys = []
-        self.make_agents(infant_params)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            self.make_agents(infant_params)
 
         self.datacollector = mesa.DataCollector(
             model_reporters={

@@ -23,6 +23,7 @@ class RunResult:
     actions: np.ndarray
     parent_tps: np.ndarray
     infant_tps: np.ndarray
+    infant_pos: np.ndarray
 
     def fitness(self, metric, goal_dist=None, average_steps=None):
         if metric == "goal_dist":
@@ -48,6 +49,7 @@ class RunResult:
             "actions",
             "parent_tps",
             "infant_tps",
+            "infant_pos",
         ]
 
     def to_list(self):
@@ -58,6 +60,7 @@ class RunResult:
             self.actions,
             self.parent_tps,
             self.infant_tps,
+            self.infant_pos,
         ]
 
 
@@ -123,9 +126,13 @@ class Simulation:
         for _ in range(self.repeats):
             run_results.append(self._single_run_param_set(param_set))
 
-        goal_dist, infant_actions, infant_satisfaction, parent_satisfaction = zip(
-            *run_results
-        )
+        (
+            goal_dist,
+            infant_actions,
+            infant_satisfaction,
+            parent_satisfaction,
+            infant_pos,
+        ) = zip(*run_results)
 
         return RunResult(
             parameter_set=result_param_set,
@@ -135,6 +142,7 @@ class Simulation:
             actions=dict(sum(infant_actions, Counter())),
             parent_tps=np.average(infant_satisfaction, axis=0),
             infant_tps=np.average(parent_satisfaction, axis=0),
+            infant_pos=np.average(infant_pos, axis=0),
         )
 
     def _single_run_param_set(self, param_set):
@@ -151,4 +159,5 @@ class Simulation:
             model.infant.actions,
             model.infant.satisfaction,
             model.parent.satisfaction,
+            model.infant.positions,
         )

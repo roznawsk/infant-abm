@@ -25,6 +25,17 @@ def get_model_param_sets(linspace, base_params=dict()):
     return params
 
 
+def get_linspace_str(linspace):
+    return (
+        str(linspace)
+        .replace("(", "_")
+        .replace(")", "")
+        .replace(" ", "")
+        .replace(".", "")
+        .replace(",", "_")
+    )
+
+
 def run_basic_simulation(filename, parameter_sets, repeats=13, iterations=20000):
     simulation = Simulation(
         model_param_sets=parameter_sets,
@@ -71,16 +82,7 @@ def run_comparative_boost_simulation():
 
     default_boosts = {"persistence_boost_value": 0.5, "coordination_boost_value": 0.2}
 
-    linspace_str = (
-        str(linspace)
-        .replace("(", "_")
-        .replace(")", "")
-        .replace(" ", "")
-        .replace(".", "")
-        .replace(",", "_")
-    )
-
-    dir_path = f"./results/{boosted_parameter}{linspace_str}"
+    dir_path = f"./results/{boosted_parameter}{get_linspace_str(linspace)}"
     Path(dir_path).mkdir(parents=False, exist_ok=False)
 
     for boost_value in boost_values:
@@ -104,8 +106,16 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
+    linspace = (0.1, 0.9, 5)
+
+    dir_path = f"./results/basic{get_linspace_str(linspace)}"
+    Path(dir_path).mkdir(parents=False, exist_ok=True)
+
     run_basic_simulation(
-        filename="basic", parameter_sets=get_model_param_sets((0.1, 0.9, 5)), repeats=5
+        filename=f"{dir_path}/basic2.hdf",
+        parameter_sets=get_model_param_sets(linspace),
+        iterations=20000,
+        repeats=4,
     )
     # run_comparative_simulation()
     # run_comparative_boost_simulation()

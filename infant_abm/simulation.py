@@ -142,7 +142,7 @@ class Simulation:
             actions=dict(sum(infant_actions, Counter())),
             parent_tps=np.average(infant_satisfaction, axis=0),
             infant_tps=np.average(parent_satisfaction, axis=0),
-            infant_pos=np.average(infant_pos, axis=0),
+            infant_pos=infant_pos,
         )
 
     def _single_run_param_set(self, param_set):

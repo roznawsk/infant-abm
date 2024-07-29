@@ -76,20 +76,6 @@ class Simulation:
         out_path = os.path.join(self.output_dir, "description.csv")
         out_df.to_csv(out_path)
 
-        results_path = os.path.join(self.output_dir, "results")
-
-        with shelve.open(results_path) as db:
-            for index in out_df.index:
-                index = str(index)
-                partial_path = self._get_partial_path(index)
-
-                db[index] = dict()
-
-                with shelve.open(partial_path) as partial_db:
-                    db[index] = dict(partial_db.items())
-
-                os.remove(f"{partial_path}.db")
-
     def _run_param_set(self, param_set):
         index, param_set = param_set
 

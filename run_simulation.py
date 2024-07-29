@@ -114,8 +114,8 @@ if __name__ == "__main__":
     run_basic_simulation(
         output_dir=output_dir,
         parameter_sets=get_model_param_sets(linspace),
-        iterations=2000,
-        repeats=4,
+        iterations=30000,
+        repeats=11,
     )
     # run_comparative_simulation()
     # run_comparative_boost_simulation()

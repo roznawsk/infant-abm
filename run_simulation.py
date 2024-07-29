@@ -36,12 +36,12 @@ def get_linspace_str(linspace):
     )
 
 
-def run_basic_simulation(filename, parameter_sets, repeats=13, iterations=20000):
+def run_basic_simulation(output_dir, parameter_sets, repeats=13, iterations=20000):
     simulation = Simulation(
         model_param_sets=parameter_sets,
         iterations=iterations,
         repeats=repeats,
-        output_path=filename,
+        output_dir=output_dir,
         display=True,
     )
 
@@ -106,15 +106,15 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
-    linspace = (0.1, 0.9, 3)
+    linspace = (0.1, 0.9, 2)
 
-    dir_path = f"./results/basic{get_linspace_str(linspace)}"
-    Path(dir_path).mkdir(parents=False, exist_ok=True)
+    output_dir = "./results/basic"
+    Path(output_dir).mkdir(parents=False, exist_ok=True)
 
     run_basic_simulation(
-        filename=f"{dir_path}/basic.hdf",
+        output_dir=output_dir,
         parameter_sets=get_model_param_sets(linspace),
-        iterations=20000,
+        iterations=2000,
         repeats=4,
     )
     # run_comparative_simulation()

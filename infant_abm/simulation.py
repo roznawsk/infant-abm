@@ -1,25 +1,13 @@
-from dataclasses import dataclass
-
 import multiprocessing
 import os
 import pandas as pd
 import tqdm
-import shelve
 
 from copy import deepcopy
 
 from infant_abm.model import InfantModel
 
-
-@dataclass
-class RunResult:
-    index: int
-    repetition: int
-
-    iterations: int
-
-    goal_dist: list
-    infant_positions: list
+from infant_abm.db_utils import save_partial
 
 
 class Simulation:
@@ -44,6 +32,7 @@ class Simulation:
             raise ValueError("Output path must point to an existing directory")
 
         self.output_dir = output_dir
+        self._save_description()
 
     def run(self):
         n_runs = len(self.parameter_sets)
@@ -61,15 +50,18 @@ class Simulation:
         ):
             pass
 
-    def save(self):
+    def _save_description(self):
         parameter_sets = []
 
         for d in self.parameter_sets:
             d = deepcopy(d)
             infant_params = d.pop("infant_params")
-            parameter_sets.append({**infant_params.to_dict(), **d})
+            config = d.pop("config")
+
+            parameter_sets.append({**infant_params.to_dict(), **config.to_dict(), **d})
 
         columns = parameter_sets[0].keys()
+
         data = [s.values() for s in parameter_sets]
         out_df = pd.DataFrame(data, columns=columns)
 
@@ -79,8 +71,14 @@ class Simulation:
     def _run_param_set(self, param_set):
         index, param_set = param_set
 
+        result = dict()
+
         for repetition in range(self.repeats):
-            self._single_run_param_set(param_set, index, repetition)
+            result[repetition] = self._single_run_param_set(
+                param_set, index, repetition
+            )
+
+        save_partial(self.output_dir, index, result)
 
     def _single_run_param_set(self, param_set, index, repetition):
         model = InfantModel(**param_set)
@@ -92,18 +90,12 @@ class Simulation:
             model.step()
 
             goal_dist.append(model.get_middle_dist())
-            infant_positions.append(model.infant.pos)
+            infant_positions.append(model.infant.pos.tolist())
 
-        path = self._get_partial_path(index)
-
-        with shelve.open(path) as db:
-            db[str(repetition)] = RunResult(
-                index=index,
-                repetition=repetition,
-                iterations=self.iterations,
-                goal_dist=goal_dist,
-                infant_positions=infant_positions,
-            )
-
-    def _get_partial_path(self, index):
-        return os.path.join(self.output_dir, str(index))
+        return {
+            "index": index,
+            "repetition": repetition,
+            "iterations": self.iterations,
+            "goal_dist": goal_dist,
+            "infant_positions": infant_positions,
+        }

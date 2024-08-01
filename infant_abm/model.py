@@ -137,7 +137,7 @@ class InfantModel(mesa.Model):
     def get_parent_satisfaction(self):
         return np.average(self.parent.satisfaction[-self.visualization_average_steps :])
 
-    def get_middle_dist(self):
+    def get_middle_dist(self) -> float:
         middle_point = (self.parent.pos + self.infant.pos) / 2
 
         total_dist = 0

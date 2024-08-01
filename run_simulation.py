@@ -36,17 +36,16 @@ def get_linspace_str(linspace):
     )
 
 
-def run_basic_simulation(filename, parameter_sets, repeats=13, iterations=20000):
+def run_basic_simulation(output_dir, parameter_sets, repeats=13, iterations=20000):
     simulation = Simulation(
         model_param_sets=parameter_sets,
         iterations=iterations,
         repeats=repeats,
-        output_path=filename,
+        output_dir=output_dir,
         display=True,
     )
 
     simulation.run()
-    simulation.save()
 
     return simulation
 
@@ -69,7 +68,6 @@ def run_comparative_simulation():
         )
 
         simulation.run()
-        simulation.save()
 
 
 def run_comparative_boost_simulation():
@@ -106,16 +104,36 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
-    linspace = (0.1, 0.9, 3)
+    linspace = (0.1, 0.9, 4)
 
-    dir_path = f"./results/basic{get_linspace_str(linspace)}"
-    Path(dir_path).mkdir(parents=False, exist_ok=True)
+    output_dir = "./results/basic"
+    Path(output_dir).mkdir(parents=False, exist_ok=True)
+
+    lo, hi, num = linspace
+
+    perception = np.linspace(lo, hi, num)
+    persistence = np.linspace(lo, hi, num)
+    coordination = np.linspace(lo, hi, num)
+    # boost = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    boost = [0.0, 0.3, 0.6, 1.0]
+    # boost = [0.0]
+
+    params = []
+
+    for param_set in itertools.product(*[perception, persistence, coordination, boost]):
+        prc, prs, crd, bst = param_set
+
+        i_params = InfantParams.from_array([prc, prs, crd])
+        # print(i_params)
+        base_params = {"config": Config(persistence_boost_value=bst)}
+
+        params.append({**base_params, "infant_params": i_params})
 
     run_basic_simulation(
-        filename=f"{dir_path}/basic.hdf",
-        parameter_sets=get_model_param_sets(linspace),
+        output_dir=output_dir,
+        parameter_sets=params,
         iterations=20000,
-        repeats=4,
+        repeats=11,
     )
     # run_comparative_simulation()
     # run_comparative_boost_simulation()

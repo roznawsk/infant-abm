@@ -1,86 +1,38 @@
-from dataclasses import dataclass
-
 import multiprocessing
 import os
-import numpy as np
 import pandas as pd
 import tqdm
-import warnings
 
 from copy import deepcopy
-from collections import Counter
 
 from infant_abm.model import InfantModel
-from infant_abm.utils import moving_average
 
-
-@dataclass
-class RunResult:
-    parameter_set: dict
-    repeats: int
-    iterations: int
-    goal_dist: np.ndarray
-    actions: np.ndarray
-    parent_tps: np.ndarray
-    infant_tps: np.ndarray
-    infant_pos: np.ndarray
-
-    def fitness(self, metric, goal_dist=None, average_steps=None):
-        if metric == "goal_dist":
-            try:
-                return np.where(self.goal_dist < goal_dist)[0][0]
-            except IndexError:
-                return np.NaN
-
-        elif metric == "parent_tps":
-            return moving_average(self.parent_tps, average_steps)[-1]
-
-        elif metric == "infant_tps":
-            return moving_average(self.infant_tps, average_steps)[-1]
-
-    def get_columns(self):
-        return [
-            "perception",
-            "persistence",
-            "coordination",
-            "repeats",
-            "iterations",
-            "goal_distance",
-            "actions",
-            "parent_tps",
-            "infant_tps",
-            "infant_pos",
-        ]
-
-    def to_list(self):
-        return list(self.parameter_set["infant_params"].to_array()) + [
-            self.repeats,
-            self.iterations,
-            self.goal_dist,
-            self.actions,
-            self.parent_tps,
-            self.infant_tps,
-            self.infant_pos,
-        ]
+from infant_abm.db_utils import save_partial
 
 
 class Simulation:
     def __init__(
-        self, model_param_sets, iterations, repeats, output_path=None, display=False
+        self,
+        model_param_sets: list[dict],
+        iterations: int,
+        repeats: int,
+        output_dir=None,
+        display=False,
     ):
-        self.parameter_sets = model_param_sets
-
+        self.parameter_sets: dict = model_param_sets
         self.iterations: int = iterations
         self.repeats: int = repeats
-
         self.display = display
 
-        if output_path is not None and os.path.exists(output_path):
-            raise ValueError("Output path already exists")
+        if (
+            output_dir is None
+            or not os.path.exists(output_dir)
+            or not os.path.isdir(output_dir)
+        ):
+            raise ValueError("Output path must point to an existing directory")
 
-        self.output_path = output_path
-
-        self.results: list[RunResult] = None
+        self.output_dir = output_dir
+        self._save_description()
 
     def run(self):
         n_runs = len(self.parameter_sets)
@@ -90,74 +42,60 @@ class Simulation:
             print(f"Runs no: {n_runs}, estimated output size: {file_size:.2f}MB")
 
         pool = multiprocessing.Pool()
-        results = []
 
-        for i, res in enumerate(
-            tqdm.tqdm(
-                pool.imap(self._run_param_set, self.parameter_sets, chunksize=1),
-                total=len(self.parameter_sets),
-                disable=not self.display,
-            )
+        for _ in tqdm.tqdm(
+            pool.imap(self._run_param_set, enumerate(self.parameter_sets), chunksize=1),
+            total=len(self.parameter_sets),
+            disable=not self.display,
         ):
-            res.parameter_set = self.parameter_sets[i]
-            results.append(res)
+            pass
 
-        self.results = results
-        return self.results
+    def _save_description(self):
+        parameter_sets = []
 
-    def save(self):
-        columns = self.results[0].get_columns()
-        results_np = [r.to_list() for r in self.results]
+        for d in self.parameter_sets:
+            d = deepcopy(d)
+            infant_params = d.pop("infant_params")
+            config = d.pop("config")
 
-        out_df = pd.DataFrame(results_np, columns=columns)
+            parameter_sets.append({**infant_params.to_dict(), **config.to_dict(), **d})
 
-        # We use hdf, because writing arrays into csv is troublesome
-        warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
-        out_df.to_hdf(self.output_path, key="hdfkey")
+        columns = parameter_sets[0].keys()
+
+        data = [s.values() for s in parameter_sets]
+        out_df = pd.DataFrame(data, columns=columns)
+
+        out_path = os.path.join(self.output_dir, "description.csv")
+        out_df.to_csv(out_path)
 
     def _run_param_set(self, param_set):
-        run_results = []
+        index, param_set = param_set
 
-        if 0.0 in param_set["infant_params"].to_array():
-            raise RuntimeError
+        result = dict()
 
-        result_param_set = deepcopy(param_set)
+        for repetition in range(self.repeats):
+            result[repetition] = self._single_run_param_set(
+                param_set, index, repetition
+            )
 
-        for _ in range(self.repeats):
-            run_results.append(self._single_run_param_set(param_set))
+        save_partial(self.output_dir, index, result)
 
-        (
-            goal_dist,
-            infant_actions,
-            infant_satisfaction,
-            parent_satisfaction,
-            infant_pos,
-        ) = zip(*run_results)
-
-        return RunResult(
-            parameter_set=result_param_set,
-            repeats=self.repeats,
-            iterations=self.iterations,
-            goal_dist=np.average(goal_dist, axis=0),
-            actions=dict(sum(infant_actions, Counter())),
-            parent_tps=np.average(infant_satisfaction, axis=0),
-            infant_tps=np.average(parent_satisfaction, axis=0),
-            infant_pos=infant_pos,
-        )
-
-    def _single_run_param_set(self, param_set):
+    def _single_run_param_set(self, param_set, index, repetition):
         model = InfantModel(**param_set)
 
         goal_dist = []
+        infant_positions = []
 
         for _ in range(self.iterations):
             model.step()
-            goal_dist.append(model.get_middle_dist())
 
-        return (
-            goal_dist,
-            model.infant.actions,
-            model.infant.satisfaction,
-            model.parent.satisfaction,
-            model.infant.positions,
-        )
+            goal_dist.append(model.get_middle_dist())
+            infant_positions.append(model.infant.pos.tolist())
+
+        return {
+            "index": index,
+            "repetition": repetition,
+            "iterations": self.iterations,
+            "goal_dist": goal_dist,
+            "infant_positions": infant_positions,
+        }

@@ -2,8 +2,7 @@ import math
 import numpy as np
 import dataclasses
 
-from dataclasses import dataclass
-from collections import Counter
+from dataclasses import dataclass, asdict
 
 from infant_abm.agents.infant import actions, Parameter
 from infant_abm.agents.agent import Agent
@@ -36,6 +35,9 @@ class Params:
     def to_array(self):
         return np.array([self.perception.e2, self.persistence.e2, self.coordination.e2])
 
+    def to_dict(self):
+        return {k: parameter.e2 for k, parameter in asdict(self).items()}
+
     def reset(self):
         fields = dataclasses.fields(self)
         for f in fields:
@@ -66,19 +68,14 @@ class InfantBase(Agent):
         self.target = None
         self.bonus_target = None
         self.satisfaction = []
-        self.positions = np.array([self.pos])
-        self.actions = Counter()
 
         self.next_action = actions.LookForToy()
 
     def step(self):
         self.satisfaction.append(0)
-        self.actions[self.next_action.__class__.__name__] += 1
-
         self._before_step()
 
         next_action = self._perform_action(self.next_action)
-        self.positions = np.append(self.positions, [self.pos], axis=0)
 
         assert issubclass(type(next_action), actions.Action)
 

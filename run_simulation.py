@@ -104,30 +104,60 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
-    linspace = (0.1, 0.9, 4)
+    linspace = (0.1, 0.9, 5)
 
-    output_dir = "./results/basic"
+    output_dir = "./results/boost_experimental"
     Path(output_dir).mkdir(parents=False, exist_ok=True)
 
     lo, hi, num = linspace
 
-    perception = np.linspace(lo, hi, num)
-    persistence = np.linspace(lo, hi, num)
-    coordination = np.linspace(lo, hi, num)
+    perception, persistence, coordination = [
+        np.round(np.linspace(lo, hi, num), 3) for _ in range(3)
+    ]
+    params_zip = [
+        (0.1, 0.1, 0.6333333333333333),
+        (0.1, 0.1, 0.9),
+        (0.1, 0.3666666666666667, 0.6333333333333333),
+        (0.1, 0.3666666666666667, 0.9),
+        (0.1, 0.6333333333333333, 0.6333333333333333),
+        (0.1, 0.9, 0.6333333333333333),
+        (0.1, 0.9, 0.9),
+        (0.3666666666666667, 0.1, 0.6333333333333333),
+        (0.3666666666666667, 0.1, 0.9),
+        (0.3666666666666667, 0.3666666666666667, 0.6333333333333333),
+        (0.3666666666666667, 0.3666666666666667, 0.9),
+        (0.3666666666666667, 0.6333333333333333, 0.6333333333333333),
+        (0.3666666666666667, 0.6333333333333333, 0.9),
+        (0.3666666666666667, 0.9, 0.6333333333333333),
+        (0.3666666666666667, 0.9, 0.9),
+        (0.6333333333333333, 0.3666666666666667, 0.6333333333333333),
+        (0.6333333333333333, 0.6333333333333333, 0.6333333333333333),
+        (0.6333333333333333, 0.6333333333333333, 0.9),
+        (0.6333333333333333, 0.9, 0.6333333333333333),
+        (0.6333333333333333, 0.9, 0.9),
+    ]
     # boost = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-    boost = [0.0, 0.3, 0.6, 1.0]
+    boost = np.linspace(0, 1, 5)
     # boost = [0.0]
 
     params = []
 
-    for param_set in itertools.product(*[perception, persistence, coordination, boost]):
-        prc, prs, crd, bst = param_set
+    # for param_set in itertools.product(*[perception, persistence, coordination, boost]):
+    for param_set in params_zip:
+        for bst in boost:
+            # prc, prs, crd, bst = param_set
 
-        i_params = InfantParams.from_array([prc, prs, crd])
-        # print(i_params)
-        base_params = {"config": Config(persistence_boost_value=bst)}
+            prc, prs, crd = param_set
 
-        params.append({**base_params, "infant_params": i_params})
+            i_params = InfantParams.from_array([prc, prs, crd])
+            # print(i_params)
+            base_params = {
+                "config": Config(
+                    persistence_boost_value=bst, coordination_boost_value=bst
+                )
+            }
+
+            params.append({**base_params, "infant_params": i_params})
 
     run_basic_simulation(
         output_dir=output_dir,

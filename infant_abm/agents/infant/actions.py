@@ -1,5 +1,6 @@
 class Action:
-    pass
+    def __init__(self, metadata=None):
+        self.metadata = metadata
 
 
 class Crawl(Action):
@@ -15,10 +16,12 @@ class InteractWithToy(Action):
 
 
 class EvaluateToy(Action):
-    def __init__(self, duration=0):
+    def __init__(self, duration=0, metadata=None):
+        super().__init__(metadata)
         self.duration = duration
 
 
 class EvaluateThrow(Action):
-    def __init__(self, duration=0):
+    def __init__(self, duration=0, metadata=None):
+        super().__init__(metadata)
         self.duration = duration

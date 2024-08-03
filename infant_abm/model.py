@@ -145,7 +145,7 @@ class InfantModel(mesa.Model):
         for toy in toys:
             total_dist += math.dist(middle_point, toy.pos)
 
-        return total_dist / len(toys)
+        return np.round(total_dist / len(toys), 5)
 
     def get_toys(self, pos=None, range=None):
         toys = []

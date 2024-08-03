@@ -55,9 +55,9 @@ class SeqVisionInfant(InfantBase):
     def _step_evaluate_toy(self, action: actions.EvaluateToy):
         if self.parent_visible and self.model.parent.infant_visible:
             self.params.persistence.boost(self.PERSISTENCE_BOOST_VALUE)
-            return actions.Crawl()
+            return actions.Crawl(metadata="persistence_boost")
         elif action.duration == self.TOY_EVALUATION_DURATION:
-            return actions.Crawl()
+            return actions.Crawl(metadata="no_boost")
         else:
             if chance(self.TOY_EVALUATION_INFANT_CHANCE, self.TOY_EVALUATION_DURATION):
                 self.rotate_towards(self.model.parent.pos)
@@ -117,7 +117,7 @@ class SeqVisionInfant(InfantBase):
     def _step_evaluate_throw(self, action: actions.EvaluateThrow):
         if self.parent_visible and self.model.parent.infant_visible:
             self.params.coordination.boost(self.COORDINATION_BOOST_VALUE)
-            return actions.InteractWithToy()
+            return actions.InteractWithToy(metadata="coordination_boost")
         elif action.duration == self.TOY_EVALUATION_DURATION:
             return actions.InteractWithToy()
         else:

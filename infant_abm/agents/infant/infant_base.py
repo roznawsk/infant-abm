@@ -5,8 +5,7 @@ import dataclasses
 from dataclasses import dataclass, asdict
 
 from infant_abm.agents.infant import actions, Parameter
-from infant_abm.agents.agent import Agent
-from infant_abm.agents.position import Position
+from infant_abm.agents import Toy, Agent, Position
 
 
 @dataclass
@@ -65,7 +64,7 @@ class InfantBase(Agent):
 
         self.params: Params = params
         self.velocity = None
-        self.target = None
+        self.target: Toy = None
         self.bonus_target = None
         self.satisfaction = []
 

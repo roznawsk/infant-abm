@@ -14,7 +14,7 @@ class VisionOnlyParent(ParentBase):
             self.rotate_towards(self.model.infant.pos)
 
             if self.relevant_response_probability > np.random.rand():
-                self._find_toy_nearby(event.target)
+                self._find_toy_nearby(event.toy)
 
     def _handle_event_throw_evaluation(self, event: ThrowEvaluation):
         if self.relevant_response_probability > np.random.rand():

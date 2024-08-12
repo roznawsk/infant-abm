@@ -7,7 +7,7 @@ from copy import deepcopy
 
 from infant_abm.model import InfantModel
 
-# from infant_abm.agents.infant.actions import InteractWithToy, Crawl
+from infant_abm.agents.infant.actions import InteractWithToy, Crawl
 from infant_abm.db_utils import save_partial
 
 
@@ -86,40 +86,34 @@ class Simulation:
 
         goal_dist = []
         # infant_positions = []
-
-        # persistence_boost_count = 0
-        # no_persistence_boost_count = 0
-        # coordination_boost_count = 0
-        # no_coordination_boost_count = 0
+        boosts = []
 
         for _ in range(self.iterations):
             model.step()
 
             goal_dist.append(model.get_middle_dist())
+            boosts.append("")
             # infant_positions.append(model.infant.pos.tolist())
 
-            # action = model.infant.next_action
+            action = model.infant.next_action
 
-            # match action:
-            #     case Crawl():
-            #         if action.metadata == "persistence_boost":
-            #             persistence_boost_count += 1
-            #         elif action.metadata == "no_boost":
-            #             no_persistence_boost_count += 1
+            match action:
+                case Crawl():
+                    if action.metadata == "persistence_boost":
+                        boosts[-1] = "persistence"
+                    elif action.metadata == "no_boost":
+                        boosts[-1] = "no_persistence"
 
-            #     case InteractWithToy():
-            #         if action.metadata == "coordination_boost":
-            #             coordination_boost_count += 1
-            #         else:
-            #             no_coordination_boost_count += 1
+                case InteractWithToy():
+                    if action.metadata == "coordination_boost":
+                        boosts[-1] = "coordination"
+                    else:
+                        boosts[-1] = "no_coordination"
 
         return {
             "index": index,
             "repetition": repetition,
             "iterations": self.iterations,
             "goal_dist": goal_dist,
-            # "persistence_boost_count": persistence_boost_count,
-            # "no_persistence_boost_count": no_persistence_boost_count,
-            # "coordination_boost_count": coordination_boost_count,
-            # "no_coordination_boost_count": no_coordination_boost_count,
+            "boosts": boosts,
         }

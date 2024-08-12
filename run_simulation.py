@@ -106,7 +106,7 @@ def run_comparative_boost_simulation():
 if __name__ == "__main__":
     linspace = (0.1, 0.9, 5)
 
-    output_dir = "./results/boost_persistence_only"
+    output_dir = "./results/boost_coordination_only"
     Path(output_dir).mkdir(parents=False, exist_ok=True)
 
     lo, hi, num = linspace
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
         i_params = InfantParams.from_array([prc, prs, crd])
         base_params = {
-            "config": Config(persistence_boost_value=bst, coordination_boost_value=0)
+            "config": Config(persistence_boost_value=0, coordination_boost_value=bst)
         }
 
         params.append({**base_params, "infant_params": i_params})

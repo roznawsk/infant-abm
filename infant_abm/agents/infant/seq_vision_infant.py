@@ -34,7 +34,7 @@ class SeqVisionInfant(InfantBase):
         self.current_persistence_boost_duration = 0
 
     def _before_step(self):
-        self._update_parent_visible()
+        pass
 
     def _step_look_for_toy(self, _action):
         self.current_persistence_boost_duration = 0
@@ -48,19 +48,21 @@ class SeqVisionInfant(InfantBase):
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
-        self.rotate_towards(target.pos)
 
         return actions.EvaluateToy()
 
     def _step_evaluate_toy(self, action: actions.EvaluateToy):
         if self.parent_visible and self.model.parent.infant_visible:
             self.params.persistence.boost(self.PERSISTENCE_BOOST_VALUE)
+
+            self._reset_visible()
             return actions.Crawl(metadata="persistence_boost")
         elif action.duration == self.TOY_EVALUATION_DURATION:
+            self._reset_visible()
             return actions.Crawl(metadata="no_boost")
         else:
             if chance(self.TOY_EVALUATION_INFANT_CHANCE, self.TOY_EVALUATION_DURATION):
-                self.rotate_towards(self.model.parent.pos)
+                self.parent_visible = True
 
             if chance(self.TOY_EVALUATION_PARENT_CHANCE, self.TOY_EVALUATION_DURATION):
                 self.model.parent.handle_event(ToySelected(self.target))
@@ -84,7 +86,6 @@ class SeqVisionInfant(InfantBase):
 
         new_pos = self.target.pos + throw_direction
         self.target.move_agent(new_pos)
-        self.rotate_towards(new_pos)
 
         self.target.interact()
         self.model.parent.handle_event(ToyThrown(self.target))
@@ -117,14 +118,17 @@ class SeqVisionInfant(InfantBase):
     def _step_evaluate_throw(self, action: actions.EvaluateThrow):
         if self.parent_visible and self.model.parent.infant_visible:
             self.params.coordination.boost(self.COORDINATION_BOOST_VALUE)
+
+            self._reset_visible()
             return actions.InteractWithToy(metadata="coordination_boost")
         elif action.duration == self.TOY_EVALUATION_DURATION:
+            self._reset_visible()
             return actions.InteractWithToy()
         else:
             if chance(
                 self.THROW_EVALUATION_INFANT_CHANCE, self.THROW_EVALUATION_DURATION
             ):
-                self.rotate_towards(self.model.parent.pos)
+                self.parent_visible = True
 
             if chance(
                 self.THROW_EVALUATION_PARENT_CHANCE, self.THROW_EVALUATION_DURATION
@@ -137,9 +141,9 @@ class SeqVisionInfant(InfantBase):
 
     def _start_evaluating_throw(self):
         if 0.5 > np.random.rand():
-            self.rotate_towards(self.model.parent.pos)
+            self.parent_visible = True
             self.model.parent.handle_event(ThrowEvaluation())
 
-    def _update_parent_visible(self):
-        parent_angle = Position.angle(self.pos, self.model.parent.pos)
-        self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
+    def _reset_visible(self):
+        self.parent_visible = False
+        self.model.parent.infant_visible = False

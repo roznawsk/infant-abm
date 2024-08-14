@@ -38,8 +38,6 @@ class ParentBase(Agent):
     def step(self):
         self.satisfaction.append(0)
 
-        self._update_infant_visible()
-
         match self.next_action:
             case Action.WAIT:
                 pass
@@ -78,7 +76,6 @@ class ParentBase(Agent):
 
         new_pos = self.pos + throw_direction
         self.target.move_agent(new_pos)
-        self.rotate_towards(new_pos)
 
         self.model.infant.bonus_target = self.target
         if self.target == self.bonus_target:
@@ -86,10 +83,6 @@ class ParentBase(Agent):
         self.target = None
         self.bonus_target = None
         self.next_action = Action.WAIT
-
-    def _update_infant_visible(self):
-        infant_angle = Position.angle(self.pos, self.model.infant.pos)
-        self.infant_visible = abs(infant_angle - self.direction) < self.sight_angle
 
     def _handle_event_toy_thrown(self, event):
         pass

@@ -30,13 +30,14 @@ class ParentBase(Agent):
         self.target = None
         self.bonus_target = None
 
-        self.satisfaction = []
-        self.infant_visible = False
+        self.satisfaction = 0
 
         self.next_action = Action.WAIT
 
     def step(self):
-        self.satisfaction.append(0)
+        self.satisfaction = 0
+
+        self._before_step()
 
         match self.next_action:
             case Action.WAIT:
@@ -45,6 +46,9 @@ class ParentBase(Agent):
                 self._step_fetch_toy()
             case Action.PASS_TOY:
                 self._step_pass_toy()
+
+    def _before_step(self):
+        pass
 
     def handle_event(self, event):
         """
@@ -79,7 +83,7 @@ class ParentBase(Agent):
 
         self.model.infant.bonus_target = self.target
         if self.target == self.bonus_target:
-            self.satisfaction[-1] += 1
+            self.satisfaction = 1
         self.target = None
         self.bonus_target = None
         self.next_action = Action.WAIT

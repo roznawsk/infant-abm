@@ -34,7 +34,7 @@ class NoVisionInfant(InfantBase):
         self.target.interact()
         self.model.parent.bonus_target = self.target
         if self.target == self.bonus_target:
-            self.satisfaction[-1] += 1
+            self.satisfaction = 1
         self.target = None
         self.bonus_target = None
 

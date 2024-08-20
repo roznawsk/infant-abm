@@ -66,12 +66,12 @@ class InfantBase(Agent):
         self.velocity = None
         self.target: Toy = None
         self.bonus_target = None
-        self.satisfaction = []
+        self.satisfaction = 0
 
         self.next_action = actions.LookForToy()
 
     def step(self):
-        self.satisfaction.append(0)
+        self.satisfaction = 0
         self._before_step()
 
         next_action = self._perform_action(self.next_action)

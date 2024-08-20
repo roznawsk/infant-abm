@@ -12,29 +12,58 @@ from infant_abm.utils import chance
 class SeqVisionInfant(InfantBase):
     # Agent constants
 
-    TOY_EVALUATION_DURATION = 3
-    THROW_EVALUATION_DURATION = 20
+    # TOY_EVALUATION_DURATION = 3
+    # THROW_EVALUATION_DURATION = 20
 
     PERSISTENCE_BOOST_DURATION = 20
 
-    COORDINATION_BOOST_VALUE = 0.2
-    PERSISTENCE_BOOST_VALUE = 0.2
+    # COORDINATION_BOOST_VALUE = 0.2
+    # PERSISTENCE_BOOST_VALUE = 0.2
 
-    TOY_EVALUATION_PARENT_CHANCE = 0.7
-    TOY_EVALUATION_INFANT_CHANCE = 0.7
+    # TOY_EVALUATION_PARENT_CHANCE = 0.7
+    # TOY_EVALUATION_INFANT_CHANCE = 0.7
 
-    THROW_EVALUATION_PARENT_CHANCE = 0.7
-    THROW_EVALUATION_INFANT_CHANCE = 0.7
+    # THROW_EVALUATION_PARENT_CHANCE = 0.7
+    # THROW_EVALUATION_INFANT_CHANCE = 0.7
+
+    GAZE_HISTORY_SIZE = 11
 
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
 
-        self.parent_visible = False
-
+        self.gaze_directions = [None] * self.GAZE_HISTORY_SIZE
         self.current_persistence_boost_duration = 0
+        self.q_learning_state = None
+
+    def get_q_actions(self):
+        return [None, self.model.parent] + self.model.get_toys()
 
     def _before_step(self):
-        pass
+        self.q_learning_state = self.model.q_learning_agent.get_state()
+
+        new_action = self.model.q_learning_agent.choose_action()
+
+        self.gaze_directions.append(new_action)
+        self.gaze_directions.pop(0)
+
+    def after_step(self):
+        next_state = self.model.q_learning_agent.get_state()
+        reward = self.model.q_learning_agent.reward(next_state)
+        self.model.q_learning_agent.update_q_table(
+            self.q_learning_state, self.gaze_directions[-1], reward, next_state
+        )
+
+        # print(f"{self.gaze_directions[-2:]}, {self.model.parent.gaze_directions[-2:]}")
+
+        if np.random.rand() < 0.005:
+            # print(next_state)
+            # print(self.model.q_learning_agent.q_table)
+            print(
+                {
+                    state: np.argmax(self.model.q_learning_agent.q_table[state])
+                    for state in range(8)
+                }
+            )
 
     def _step_look_for_toy(self, _action):
         self.current_persistence_boost_duration = 0
@@ -49,7 +78,8 @@ class SeqVisionInfant(InfantBase):
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
 
-        return actions.EvaluateToy()
+        # return actions.EvaluateToy()
+        return actions.Crawl()
 
     def _step_evaluate_toy(self, action: actions.EvaluateToy):
         if self.parent_visible and self.model.parent.infant_visible:
@@ -92,7 +122,7 @@ class SeqVisionInfant(InfantBase):
 
         self.model.parent.bonus_target = self.target
         if self.target == self.bonus_target:
-            self.satisfaction[-1] += 1
+            self.satisfaction = 1
         self.target = None
         self.bonus_target = None
 
@@ -101,7 +131,8 @@ class SeqVisionInfant(InfantBase):
     def _step_crawl(self, _action):
         if self._target_in_range():
             self._start_evaluating_throw()
-            return actions.EvaluateThrow()
+            # return actions.EvaluateThrow()
+            return actions.InteractWithToy()
 
         if self._gets_distracted():
             self.target = None
@@ -137,8 +168,6 @@ class SeqVisionInfant(InfantBase):
 
             return actions.EvaluateThrow(action.duration + 1)
 
-    # Helper functions
-
     def _start_evaluating_throw(self):
         if 0.5 > np.random.rand():
             self.parent_visible = True
@@ -147,3 +176,17 @@ class SeqVisionInfant(InfantBase):
     def _reset_visible(self):
         self.parent_visible = False
         self.model.parent.infant_visible = False
+
+    def _get_q_state(self):
+        return (
+            self.last_action.number,
+            SeqVisionInfant._get_agent_gaze_direction(self),
+            SeqVisionInfant._get_agent_gaze_direction(self.model.parent),
+        )
+
+    @staticmethod
+    def _get_agent_gaze_direction(agent):
+        if agent.gaze_direction is None:
+            return 0
+        else:
+            return min(agent.gaze_direction.unique_id, 5)

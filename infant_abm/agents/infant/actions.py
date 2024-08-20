@@ -3,16 +3,17 @@ class Action:
         self.metadata = metadata
 
 
-class Crawl(Action):
-    pass
-
-
 class LookForToy(Action):
+    number = 1
     pass
+
+
+class Crawl(Action):
+    number = 2
 
 
 class InteractWithToy(Action):
-    pass
+    number = 3
 
 
 class EvaluateToy(Action):

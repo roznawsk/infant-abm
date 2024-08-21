@@ -2,10 +2,12 @@ import math
 import numpy as np
 import dataclasses
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 
+
 from infant_abm.agents.infant import actions, Parameter
-from infant_abm.agents import Toy, Agent, Position
+from infant_abm.agents import Agent, Position
 
 
 @dataclass
@@ -50,7 +52,7 @@ class Params:
         return self.__dict__ == other.__dict__
 
 
-class InfantBase(Agent):
+class Infant(Agent, ABC):
     # Agent constants
 
     SPEED = 1
@@ -64,21 +66,10 @@ class InfantBase(Agent):
 
         self.params: Params = params
         self.velocity = None
-        self.target: Toy = None
-        self.bonus_target = None
-        self.satisfaction = []
 
-        self.next_action = actions.LookForToy()
-
+    @abstractmethod
     def step(self):
-        self.satisfaction.append(0)
-        self._before_step()
-
-        next_action = self._perform_action(self.next_action)
-
-        assert issubclass(type(next_action), actions.Action)
-
-        self.next_action = next_action
+        pass
 
     def _perform_action(self, action):
         match action:
@@ -92,9 +83,6 @@ class InfantBase(Agent):
                 return self._step_interact_with_toy(action)
             case actions.EvaluateThrow():
                 return self._step_evaluate_throw(action)
-
-    def _before_step(self):
-        pass
 
     def _move(self):
         self.velocity = Position.calc_norm_vector(self.pos, self.target.pos)

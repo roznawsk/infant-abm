@@ -7,7 +7,7 @@ from infant_abm.agents import Toy
 from infant_abm.agents.position import Position
 
 
-class VisionOnlyParent(Parent):
+class AbstractVisionParent(Parent):
     ALLOWED_ACTIONS = [Action.WAIT, Action.PASS_TOY]
 
     def __init__(self, unique_id, model, pos):
@@ -41,18 +41,16 @@ class VisionOnlyParent(Parent):
 
     def _handle_event_toy_thrown(self, event: ToyThrown):
         if self.responsiveness > np.random.rand():
-            self.rotate_towards(self.model.infant.pos)
-
             if self.relevant_response_probability > np.random.rand():
                 self._find_toy_nearby(event.toy)
 
     def _handle_event_throw_evaluation(self, event: ThrowEvaluation):
         if self.relevant_response_probability > np.random.rand():
-            self.rotate_towards(self.model.infant.pos)
+            self.infant_visible = True
 
     def _handle_event_toy_selected(self, event: ToySelected):
         if self.relevant_response_probability > np.random.rand():
-            self.rotate_towards(self.model.infant.pos)
+            self.infant_visible = True
 
     def _find_toy_nearby(self, toy: Toy):
         toys = self.model.get_toys(self.pos, self.TOY_INTERACTION_RANGE)

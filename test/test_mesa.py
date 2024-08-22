@@ -8,7 +8,7 @@ from infant_abm.agents import (
     AbstractVisionInfant,
     SpatialVisionParent,
     AbstractVisionParent,
-    MoverParent,
+    NoVisionParent,
 )
 
 
@@ -47,7 +47,7 @@ def run_basic_scenario(
 def test_model_v0_1_0():
     simulation = run_basic_scenario(
         NoVisionInfant,
-        MoverParent,
+        NoVisionParent,
         infant_params=InfantParams.from_array([0, 0, 0]),
     )
     _output_dir = simulation.output_dir

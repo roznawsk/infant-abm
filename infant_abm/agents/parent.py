@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 from infant_abm.agents.agent import Agent
 from infant_abm.agents.position import Position
-from infant_abm.agents.infant.events import ToySelected, ToyThrown, ThrowEvaluation
+from infant_abm.agents.events import ToySelected, ToyThrown, ThrowEvaluation
 
 
 class Action(Enum):

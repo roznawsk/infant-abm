@@ -5,9 +5,10 @@ import dataclasses
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 
-
-from infant_abm.agents.infant import actions, Parameter
-from infant_abm.agents import Agent, Position
+from infant_abm.agents.parameter import Parameter
+from infant_abm.agents.agent import Agent
+from infant_abm.agents.position import Position
+from infant_abm.agents import infant_actions
 
 
 @dataclass
@@ -73,15 +74,15 @@ class Infant(Agent, ABC):
 
     def _perform_action(self, action):
         match action:
-            case actions.LookForToy():
+            case infant_actions.LookForToy():
                 return self._step_look_for_toy(action)
-            case actions.EvaluateToy():
+            case infant_actions.EvaluateToy():
                 return self._step_evaluate_toy(action)
-            case actions.Crawl():
+            case infant_actions.Crawl():
                 return self._step_crawl(action)
-            case actions.InteractWithToy():
+            case infant_actions.InteractWithToy():
                 return self._step_interact_with_toy(action)
-            case actions.EvaluateThrow():
+            case infant_actions.EvaluateThrow():
                 return self._step_evaluate_throw(action)
 
     def _move(self):

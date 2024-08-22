@@ -1,16 +1,15 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant.infant import Infant, Params
-from infant_abm.agents.infant.events import ToySelected, ToyThrown, ThrowEvaluation
+from infant_abm.agents.infant import Infant, Params
+from infant_abm.agents.events import ToySelected, ToyThrown, ThrowEvaluation
 from infant_abm.agents.position import Position
-from infant_abm.agents.infant import actions
+from infant_abm.agents import infant_actions
 
-from infant_abm.agents.toy import Toy
 from infant_abm.utils import chance
 
 
-class SpatialVisionInfant(Infant):
+class AbstractVisionInfant(Infant):
     TOY_EVALUATION_DURATION = 3
     THROW_EVALUATION_DURATION = 20
 
@@ -26,26 +25,23 @@ class SpatialVisionInfant(Infant):
     THROW_EVALUATION_INFANT_CHANCE = 0.7
 
     ALLOWED_ACTIONS = [
-        actions.LookForToy,
-        actions.EvaluateToy,
-        actions.Crawl,
-        actions.EvaluateThrow,
-        actions.InteractWithToy,
+        infant_actions.LookForToy,
+        infant_actions.EvaluateToy,
+        infant_actions.Crawl,
+        infant_actions.EvaluateThrow,
+        infant_actions.InteractWithToy,
     ]
 
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
 
         self.parent_visible = False
-        self.target: Toy = None
 
         self.current_persistence_boost_duration = 0
 
-        self.next_action = actions.LookForToy()
+        self.next_action = infant_actions.LookForToy()
 
     def step(self):
-        self._update_parent_visible()
-
         next_action = super()._perform_action(self.next_action)
 
         assert type(next_action) in self.ALLOWED_ACTIONS
@@ -64,24 +60,26 @@ class SpatialVisionInfant(Infant):
         [target] = np.random.choice(toys, size=1, p=probabilities)
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
-        self.rotate_towards(target.pos)
 
-        return actions.EvaluateToy()
+        return infant_actions.EvaluateToy()
 
-    def _step_evaluate_toy(self, action: actions.EvaluateToy):
+    def _step_evaluate_toy(self, action: infant_actions.EvaluateToy):
         if self.parent_visible and self.model.parent.infant_visible:
             self.params.persistence.boost(self.PERSISTENCE_BOOST_VALUE)
-            return actions.Crawl(metadata="persistence_boost")
+
+            self._reset_visible()
+            return infant_actions.Crawl(metadata="persistence_boost")
         elif action.duration == self.TOY_EVALUATION_DURATION:
-            return actions.Crawl(metadata="no_boost")
+            self._reset_visible()
+            return infant_actions.Crawl(metadata="no_boost")
         else:
             if chance(self.TOY_EVALUATION_INFANT_CHANCE, self.TOY_EVALUATION_DURATION):
-                self.rotate_towards(self.model.parent.pos)
+                self.parent_visible = True
 
             if chance(self.TOY_EVALUATION_PARENT_CHANCE, self.TOY_EVALUATION_DURATION):
                 self.model.parent.handle_event(ToySelected(self.target))
 
-            return actions.EvaluateToy(action.duration + 1)
+            return infant_actions.EvaluateToy(action.duration + 1)
 
     def _step_interact_with_toy(self, _action):
         self.params.coordination.reset()
@@ -100,58 +98,64 @@ class SpatialVisionInfant(Infant):
 
         new_pos = self.target.pos + throw_direction
         self.target.move_agent(new_pos)
-        self.rotate_towards(new_pos)
 
         self.target.interact()
         self.model.parent.handle_event(ToyThrown(self.target))
 
+        self.model.parent.bonus_target = self.target
+        if self.target == self.bonus_target:
+            self.satisfaction[-1] += 1
         self.target = None
+        self.bonus_target = None
 
-        return actions.LookForToy()
+        return infant_actions.LookForToy()
 
     def _step_crawl(self, _action):
-        if super()._target_in_range():
+        if self._target_in_range():
             self._start_evaluating_throw()
-            return actions.EvaluateThrow()
+            return infant_actions.EvaluateThrow()
 
-        if super()._gets_distracted():
+        if self._gets_distracted():
             self.target = None
-            return actions.LookForToy()
+            return infant_actions.LookForToy()
 
-        super()._move()
+        self._move()
 
         self.current_persistence_boost_duration += 1
         if self.current_persistence_boost_duration == self.PERSISTENCE_BOOST_DURATION:
             self.params.persistence.reset()
 
-        return actions.Crawl()
+        return infant_actions.Crawl()
 
-    def _step_evaluate_throw(self, action: actions.EvaluateThrow):
+    def _step_evaluate_throw(self, action: infant_actions.EvaluateThrow):
         if self.parent_visible and self.model.parent.infant_visible:
             self.params.coordination.boost(self.COORDINATION_BOOST_VALUE)
-            return actions.InteractWithToy(metadata="coordination_boost")
+
+            self._reset_visible()
+            return infant_actions.InteractWithToy(metadata="coordination_boost")
         elif action.duration == self.TOY_EVALUATION_DURATION:
-            return actions.InteractWithToy()
+            self._reset_visible()
+            return infant_actions.InteractWithToy()
         else:
             if chance(
                 self.THROW_EVALUATION_INFANT_CHANCE, self.THROW_EVALUATION_DURATION
             ):
-                self.rotate_towards(self.model.parent.pos)
+                self.parent_visible = True
 
             if chance(
                 self.THROW_EVALUATION_PARENT_CHANCE, self.THROW_EVALUATION_DURATION
             ):
                 self.model.parent.handle_event(ThrowEvaluation())
 
-            return actions.EvaluateThrow(action.duration + 1)
+            return infant_actions.EvaluateThrow(action.duration + 1)
 
     # Helper functions
 
     def _start_evaluating_throw(self):
         if 0.5 > np.random.rand():
-            self.rotate_towards(self.model.parent.pos)
+            self.parent_visible = True
             self.model.parent.handle_event(ThrowEvaluation())
 
-    def _update_parent_visible(self):
-        parent_angle = Position.angle(self.pos, self.model.parent.pos)
-        self.parent_visible = abs(parent_angle - self.direction) < self.sight_angle
+    def _reset_visible(self):
+        self.parent_visible = False
+        self.model.parent.infant_visible = False

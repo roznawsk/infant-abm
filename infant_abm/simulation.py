@@ -7,7 +7,7 @@ from copy import deepcopy
 
 from infant_abm.model import InfantModel
 
-from infant_abm.agents.infant.actions import InteractWithToy, Crawl
+from infant_abm.agents.infant_actions import InteractWithToy, Crawl
 from infant_abm.db_utils import save_partial
 
 

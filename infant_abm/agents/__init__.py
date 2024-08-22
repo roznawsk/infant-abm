@@ -2,8 +2,17 @@ from .toy import Toy
 from .position import Position
 from .agent import Agent
 
-from .infant import Infant, NoVisionInfant, SpatialVisionInfant, AbstractVisionInfant
-from .parent import Parent, MoverParent, SpatialVisionParent, AbstractVisionParent
+from .abstract_vision.abstract_vision_infant import AbstractVisionInfant
+from .abstract_vision.abstract_vision_parent import AbstractVisionParent
+
+from .no_vision.no_vision_infant import NoVisionInfant
+from .no_vision.no_vision_parent import NoVisionParent
+
+from .spatial_vision.spatial_vision_infant import SpatialVisionInfant
+from .spatial_vision.spatial_vision_parent import SpatialVisionParent
+
+from .infant import Infant
+from .parent import Parent
 
 __all__ = (
     "Agent",
@@ -14,7 +23,7 @@ __all__ = (
     "SpatialVisionInfant",
     "AbstractVisionInfant",
     "Parent",
-    "MoverParent",
+    "NoVisionParent",
     "SpatialVisionParent",
     "AbstractVisionParent",
 )

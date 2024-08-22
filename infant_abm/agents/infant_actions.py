@@ -1,27 +1,27 @@
-class Action:
+class InfantAction:
     def __init__(self, metadata=None):
         self.metadata = metadata
 
 
-class Crawl(Action):
+class Crawl(InfantAction):
     pass
 
 
-class LookForToy(Action):
+class LookForToy(InfantAction):
     pass
 
 
-class InteractWithToy(Action):
+class InteractWithToy(InfantAction):
     pass
 
 
-class EvaluateToy(Action):
+class EvaluateToy(InfantAction):
     def __init__(self, duration=0, metadata=None):
         super().__init__(metadata)
         self.duration = duration
 
 
-class EvaluateThrow(Action):
+class EvaluateThrow(InfantAction):
     def __init__(self, duration=0, metadata=None):
         super().__init__(metadata)
         self.duration = duration

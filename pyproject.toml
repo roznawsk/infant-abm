@@ -16,7 +16,6 @@ Mesa = "^2.1.2"
 numpy = "^1.26.1"
 matplotlib = "^3.8.2"
 ruff = "^0.3.5"
-tables = "^3.9.2"
 pytest = "^8.2.2"
 
 [build-system]

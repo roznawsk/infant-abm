@@ -19,6 +19,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-root
+    - name: Check dependencies
+      run: poetry check
     - name: Lint
       run: |
         poetry run ruff check

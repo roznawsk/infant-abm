@@ -1,14 +1,32 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant import InfantBase, Params, actions
+from infant_abm.agents.infant import Infant, Params, actions
 from infant_abm.agents.infant.events import ToySelected, ToyThrown
 from infant_abm.agents.position import Position
+from infant_abm.agents.toy import Toy
 
 
-class NoVisionInfant(InfantBase):
+class NoVisionInfant(Infant):
+    ALLOWED_ACTIONS = [
+        actions.LookForToy,
+        actions.Crawl,
+        actions.InteractWithToy,
+    ]
+
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
+
+        self.target: Toy = None
+
+        self.next_action = actions.LookForToy()
+
+    def step(self):
+        next_action = super()._perform_action(self.next_action)
+
+        assert type(next_action) in self.ALLOWED_ACTIONS
+
+        self.next_action = next_action
 
     def _step_interact_with_toy(self, _action):
         throw_direction = None
@@ -32,11 +50,7 @@ class NoVisionInfant(InfantBase):
         self.model.parent.handle_event(ToyThrown(self.target))
 
         self.target.interact()
-        self.model.parent.bonus_target = self.target
-        if self.target == self.bonus_target:
-            self.satisfaction[-1] += 1
         self.target = None
-        self.bonus_target = None
 
         return actions.LookForToy()
 

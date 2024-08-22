@@ -1,17 +1,16 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant.infant_base import InfantBase, Params
+from infant_abm.agents.infant.infant import Infant, Params
 from infant_abm.agents.infant.events import ToySelected, ToyThrown, ThrowEvaluation
 from infant_abm.agents.position import Position
 from infant_abm.agents.infant import actions
 
+from infant_abm.agents.toy import Toy
 from infant_abm.utils import chance
 
 
-class SeqVisionInfant(InfantBase):
-    # Agent constants
-
+class SpatialVisionInfant(Infant):
     TOY_EVALUATION_DURATION = 3
     THROW_EVALUATION_DURATION = 20
 
@@ -26,15 +25,32 @@ class SeqVisionInfant(InfantBase):
     THROW_EVALUATION_PARENT_CHANCE = 0.7
     THROW_EVALUATION_INFANT_CHANCE = 0.7
 
+    ALLOWED_ACTIONS = [
+        actions.LookForToy,
+        actions.EvaluateToy,
+        actions.Crawl,
+        actions.EvaluateThrow,
+        actions.InteractWithToy,
+    ]
+
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
 
         self.parent_visible = False
+        self.target: Toy = None
 
         self.current_persistence_boost_duration = 0
 
-    def _before_step(self):
+        self.next_action = actions.LookForToy()
+
+    def step(self):
         self._update_parent_visible()
+
+        next_action = super()._perform_action(self.next_action)
+
+        assert type(next_action) in self.ALLOWED_ACTIONS
+
+        self.next_action = next_action
 
     def _step_look_for_toy(self, _action):
         self.current_persistence_boost_duration = 0
@@ -89,24 +105,20 @@ class SeqVisionInfant(InfantBase):
         self.target.interact()
         self.model.parent.handle_event(ToyThrown(self.target))
 
-        self.model.parent.bonus_target = self.target
-        if self.target == self.bonus_target:
-            self.satisfaction[-1] += 1
         self.target = None
-        self.bonus_target = None
 
         return actions.LookForToy()
 
     def _step_crawl(self, _action):
-        if self._target_in_range():
+        if super()._target_in_range():
             self._start_evaluating_throw()
             return actions.EvaluateThrow()
 
-        if self._gets_distracted():
+        if super()._gets_distracted():
             self.target = None
             return actions.LookForToy()
 
-        self._move()
+        super()._move()
 
         self.current_persistence_boost_duration += 1
         if self.current_persistence_boost_duration == self.PERSISTENCE_BOOST_DURATION:

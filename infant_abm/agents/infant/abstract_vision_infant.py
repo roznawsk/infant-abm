@@ -9,9 +9,7 @@ from infant_abm.agents.infant import actions
 from infant_abm.utils import chance
 
 
-class SeqVisionInfant(Infant):
-    # Agent constants
-
+class AbstractVisionInfant(Infant):
     TOY_EVALUATION_DURATION = 3
     THROW_EVALUATION_DURATION = 20
 
@@ -40,6 +38,8 @@ class SeqVisionInfant(Infant):
         self.parent_visible = False
 
         self.current_persistence_boost_duration = 0
+
+        self.next_action = actions.LookForToy()
 
     def step(self):
         next_action = super()._perform_action(self.next_action)

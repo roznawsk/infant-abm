@@ -58,7 +58,7 @@ class SpatialVisionInfant(Infant):
 
         toys = self.model.get_toys()
 
-        probabilities = np.array([super()._toy_probability(toy) for toy in toys])
+        probabilities = np.array([self._toy_probability(toy) for toy in toys])
         probabilities /= probabilities.sum()
 
         [target] = np.random.choice(toys, size=1, p=probabilities)

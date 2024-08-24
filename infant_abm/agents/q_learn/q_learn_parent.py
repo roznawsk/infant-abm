@@ -76,10 +76,10 @@ class QLearnParent(Parent):
             case 1:
                 return self.model.infant
             case 2:
-                if target is not None and 0.5 > np.random.rand:
+                if target is not None and 0.5 > np.random.rand():
                     return target
                 else:
-                    toys = self.model.get_toys()
+                    toys = list(self.model.get_toys())
                     if target in toys:
                         toys.remove(target)
 

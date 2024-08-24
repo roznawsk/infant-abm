@@ -102,11 +102,7 @@ class AbstractVisionInfant(Infant):
         self.target.interact()
         self.model.parent.handle_event(ToyThrown(self.target))
 
-        self.model.parent.bonus_target = self.target
-        if self.target == self.bonus_target:
-            self.satisfaction[-1] += 1
         self.target = None
-        self.bonus_target = None
 
         return infant_actions.LookForToy()
 

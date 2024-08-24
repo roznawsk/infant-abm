@@ -1,15 +1,15 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant import InfantBase, Params
-from infant_abm.agents.events import ToySelected, ToyThrown, ThrowEvaluation
+from infant_abm.agents.infant import Infant, Params
+from infant_abm.agents.events import ToyThrown
 from infant_abm.agents.position import Position
 from infant_abm.agents.infant import infant_actions
 
-from infant_abm.utils import chance
+from infant_abm.agents.q_learn.q_learning_agent import QLearningAgent
 
 
-class QLearnInfant(InfantBase):
+class QLearnInfant(Infant):
     # Agent constants
 
     # TOY_EVALUATION_DURATION = 3
@@ -28,6 +28,12 @@ class QLearnInfant(InfantBase):
 
     GAZE_HISTORY_SIZE = 11
 
+    ALLOWED_ACTIONS = [
+        infant_actions.LookForToy,
+        infant_actions.Crawl,
+        infant_actions.InteractWithToy,
+    ]
+
     def __init__(self, unique_id, model, pos, params: Params):
         super().__init__(unique_id, model, pos, params)
 
@@ -35,21 +41,29 @@ class QLearnInfant(InfantBase):
         self.current_persistence_boost_duration = 0
         self.q_learning_state = None
 
-    def get_q_actions(self):
-        return [None, self.model.parent] + self.model.get_toys()
+        self.q_learning_agent = QLearningAgent(
+            model=model, actions=self.get_q_actions()
+        )
 
-    def _before_step(self):
-        self.q_learning_state = self.model.q_learning_agent.get_state()
+        self.next_action = infant_actions.LookForToy()
 
-        new_action = self.model.q_learning_agent.choose_action()
+    def step(self):
+        self.q_learning_state = self.q_learning_agent.get_state()
+        new_q_action = self.q_learning_agent.choose_action()
 
-        self.gaze_directions.append(new_action)
+        self.gaze_directions.append(new_q_action)
         self.gaze_directions.pop(0)
 
-    def after_step(self):
-        next_state = self.model.q_learning_agent.get_state()
-        reward = self.model.q_learning_agent.reward(next_state)
-        self.model.q_learning_agent.update_q_table(
+        next_action = super()._perform_action(self.next_action)
+
+        assert type(next_action) in self.ALLOWED_ACTIONS
+
+        self.next_action = next_action
+
+    def advance(self):
+        next_state = self.q_learning_agent.get_state()
+        reward = self.q_learning_agent.reward(next_state)
+        self.q_learning_agent.update_q_table(
             self.q_learning_state, self.gaze_directions[-1], reward, next_state
         )
 
@@ -60,10 +74,13 @@ class QLearnInfant(InfantBase):
             # print(self.model.q_learning_agent.q_table)
             print(
                 {
-                    state: np.argmax(self.model.q_learning_agent.q_table[state])
+                    state: np.argmax(self.q_learning_agent.q_table[state])
                     for state in range(8)
                 }
             )
+
+    def get_q_actions(self):
+        return [None, self.model.parent] + self.model.get_toys()
 
     def _step_look_for_toy(self, _action):
         self.current_persistence_boost_duration = 0
@@ -78,26 +95,7 @@ class QLearnInfant(InfantBase):
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
 
-        # return actions.EvaluateToy()
         return infant_actions.Crawl()
-
-    def _step_evaluate_toy(self, action: infant_actions.EvaluateToy):
-        if self.parent_visible and self.model.parent.infant_visible:
-            self.params.persistence.boost(self.PERSISTENCE_BOOST_VALUE)
-
-            self._reset_visible()
-            return infant_actions.Crawl(metadata="persistence_boost")
-        elif action.duration == self.TOY_EVALUATION_DURATION:
-            self._reset_visible()
-            return infant_actions.Crawl(metadata="no_boost")
-        else:
-            if chance(self.TOY_EVALUATION_INFANT_CHANCE, self.TOY_EVALUATION_DURATION):
-                self.parent_visible = True
-
-            if chance(self.TOY_EVALUATION_PARENT_CHANCE, self.TOY_EVALUATION_DURATION):
-                self.model.parent.handle_event(ToySelected(self.target))
-
-            return infant_actions.EvaluateToy(action.duration + 1)
 
     def _step_interact_with_toy(self, _action):
         self.params.coordination.reset()
@@ -120,18 +118,12 @@ class QLearnInfant(InfantBase):
         self.target.interact()
         self.model.parent.handle_event(ToyThrown(self.target))
 
-        self.model.parent.bonus_target = self.target
-        if self.target == self.bonus_target:
-            self.satisfaction = 1
         self.target = None
-        self.bonus_target = None
 
         return infant_actions.LookForToy()
 
     def _step_crawl(self, _action):
         if self._target_in_range():
-            self._start_evaluating_throw()
-            # return actions.EvaluateThrow()
             return infant_actions.InteractWithToy()
 
         if self._gets_distracted():
@@ -146,47 +138,19 @@ class QLearnInfant(InfantBase):
 
         return infant_actions.Crawl()
 
-    def _step_evaluate_throw(self, action: infant_actions.EvaluateThrow):
-        if self.parent_visible and self.model.parent.infant_visible:
-            self.params.coordination.boost(self.COORDINATION_BOOST_VALUE)
-
-            self._reset_visible()
-            return infant_actions.InteractWithToy(metadata="coordination_boost")
-        elif action.duration == self.TOY_EVALUATION_DURATION:
-            self._reset_visible()
-            return infant_actions.InteractWithToy()
-        else:
-            if chance(
-                self.THROW_EVALUATION_INFANT_CHANCE, self.THROW_EVALUATION_DURATION
-            ):
-                self.parent_visible = True
-
-            if chance(
-                self.THROW_EVALUATION_PARENT_CHANCE, self.THROW_EVALUATION_DURATION
-            ):
-                self.model.parent.handle_event(ThrowEvaluation())
-
-            return infant_actions.EvaluateThrow(action.duration + 1)
-
-    def _start_evaluating_throw(self):
-        if 0.5 > np.random.rand():
-            self.parent_visible = True
-            self.model.parent.handle_event(ThrowEvaluation())
-
-    def _reset_visible(self):
-        self.parent_visible = False
-        self.model.parent.infant_visible = False
-
     def _get_q_state(self):
         return (
             self.last_action.number,
-            QLearnInfant._get_agent_gaze_direction(self),
-            QLearnInfant._get_agent_gaze_direction(self.model.parent),
+            self._get_agent_gaze_direction(self),
+            self._get_agent_gaze_direction(self.model.parent),
         )
 
-    @staticmethod
-    def _get_agent_gaze_direction(agent):
+    def _get_agent_gaze_direction(self, agent):
         if agent.gaze_direction is None:
             return 0
+        elif agent.gaze_direction == self.model.parent:
+            return 1
         else:
-            return min(agent.gaze_direction.unique_id, 5)
+            gaze_direction = agent.gaze_direction.unique_id + 2
+            assert gaze_direction >= 2 and gaze_direction <= 5
+            return gaze_direction

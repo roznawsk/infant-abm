@@ -6,10 +6,14 @@ from infant_abm.agents import (
     SpatialVisionInfant,
     NoVisionInfant,
     AbstractVisionInfant,
+    QLearnInfant,
     SpatialVisionParent,
     AbstractVisionParent,
     NoVisionParent,
+    QLearnParent,
 )
+
+infant_params = InfantParams.from_array([0.5, 0.5, 0.5])
 
 
 def run_basic_scenario(
@@ -48,7 +52,7 @@ def test_model_v0_1_0():
     simulation = run_basic_scenario(
         NoVisionInfant,
         NoVisionParent,
-        infant_params=InfantParams.from_array([0, 0, 0]),
+        infant_params=infant_params,
     )
     _output_dir = simulation.output_dir
 
@@ -57,16 +61,7 @@ def test_model_v0_1_1():
     simulation = run_basic_scenario(
         SpatialVisionInfant,
         SpatialVisionParent,
-        infant_params=InfantParams.from_array([0, 0, 0]),
-    )
-    _output_dir = simulation.output_dir
-
-
-def test_model_v0_1_2():
-    simulation = run_basic_scenario(
-        AbstractVisionInfant,
-        AbstractVisionParent,
-        infant_params=InfantParams.from_array([0, 0, 0]),
+        infant_params=infant_params,
     )
     _output_dir = simulation.output_dir
 
@@ -85,3 +80,21 @@ def test_v0_1_1_changing_global_params():
     _simulation_2 = run_basic_scenario(
         infant_class, parent_class, infant_params=infant_params, config=config
     )
+
+
+def test_model_v0_1_2():
+    simulation = run_basic_scenario(
+        AbstractVisionInfant,
+        AbstractVisionParent,
+        infant_params=infant_params,
+    )
+    _output_dir = simulation.output_dir
+
+
+def test_model_v0_2_0():
+    simulation = run_basic_scenario(
+        QLearnInfant,
+        QLearnParent,
+        infant_params=infant_params,
+    )
+    _output_dir = simulation.output_dir

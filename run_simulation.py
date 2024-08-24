@@ -5,8 +5,42 @@ import warnings
 from pathlib import Path
 
 from infant_abm import Simulation, Config, InfantParams
+from infant_abm.agents import (
+    NoVisionInfant,
+    NoVisionParent,
+    SpatialVisionInfant,
+    SpatialVisionParent,
+    AbstractVisionInfant,
+    AbstractVisionParent,
+    QLearnInfant,
+    QLearnParent,
+)
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
+
+
+class Model_0_1_0:
+    infant_class = NoVisionInfant
+    parent_class = NoVisionParent
+    output_dir = "v0.1.0"
+
+
+class Model_0_1_1:
+    infant_class = SpatialVisionInfant
+    parent_class = SpatialVisionParent
+    output_dir = "v0.1.1"
+
+
+class Model_0_1_2:
+    infant_class = AbstractVisionInfant
+    parent_class = AbstractVisionParent
+    output_dir = "v0.1.2"
+
+
+class Model_0_2_0:
+    infant_class = QLearnInfant
+    parent_class = QLearnParent
+    output_dir = "v0.2.0"
 
 
 def get_model_param_sets(linspace, base_params=dict()):
@@ -71,43 +105,10 @@ def run_comparative_simulation():
 
 
 def run_comparative_boost_simulation():
-    repeats = 11
-    iterations = 20000
-    linspace = (0.05, 0.95, 10)
-    boosted_parameter = "coordination"
-    boost_name = f"{boosted_parameter}_boost_value"
-    boost_values = [0.15, 0.45]
-
-    default_boosts = {"persistence_boost_value": 0.5, "coordination_boost_value": 0.2}
-
-    dir_path = f"./results/{boosted_parameter}{get_linspace_str(linspace)}"
-    Path(dir_path).mkdir(parents=False, exist_ok=False)
-
-    for boost_value in boost_values:
-        boosts = default_boosts
-        boosts[boost_name] = boost_value
-
-        parameter_sets = get_model_param_sets(
-            linspace, base_params={"config": Config(**boosts)}
-        )
-
-        boost_value_str = f"{boosted_parameter[:5]}{round(boost_value * 100):03d}"
-
-        filename = f"{dir_path}/{boost_value_str}.hdf"
-
-        run_basic_simulation(
-            filename=filename,
-            parameter_sets=parameter_sets,
-            repeats=repeats,
-            iterations=iterations,
-        )
-
-
-if __name__ == "__main__":
     linspace = (0.1, 0.9, 5)
 
-    output_dir = "./results/boost_coordination_only"
-    Path(output_dir).mkdir(parents=False, exist_ok=True)
+    output_dir = "./results/model1/boost_improvement"
+    Path(output_dir).mkdir(parents=False, exist_ok=False)
 
     lo, hi, num = linspace
 
@@ -126,7 +127,7 @@ if __name__ == "__main__":
 
         i_params = InfantParams.from_array([prc, prs, crd])
         base_params = {
-            "config": Config(persistence_boost_value=0, coordination_boost_value=bst)
+            "config": Config(persistence_boost_value=bst, coordination_boost_value=bst)
         }
 
         params.append({**base_params, "infant_params": i_params})
@@ -135,5 +136,26 @@ if __name__ == "__main__":
         output_dir=output_dir,
         parameter_sets=params,
         iterations=20000,
-        repeats=11,
+        repeats=13,
+    )
+
+
+if __name__ == "__main__":
+    model = Model_0_2_0()
+    output_dir = f"./results/{model.output_dir}/test"
+
+    params = [
+        {
+            "infant_params": InfantParams.from_array([0.5, 0.5, 0.5]),
+            "infant_class": model.infant_class,
+            "parent_class": model.parent_class,
+            "config": Config(),
+        }
+    ]
+
+    run_basic_simulation(
+        output_dir=output_dir,
+        parameter_sets=params,
+        iterations=100,
+        repeats=1,
     )

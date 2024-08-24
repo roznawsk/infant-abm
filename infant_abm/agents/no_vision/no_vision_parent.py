@@ -1,12 +1,12 @@
 import math
 import numpy as np
 
-from infant_abm.agents.parent.parent import Parent, Action
-from infant_abm.agents.infant.events import ToyThrown
+from infant_abm.agents.parent import Parent, Action
+from infant_abm.agents.events import ToyThrown
 from infant_abm.agents.position import Position
 
 
-class MoverParent(Parent):
+class NoVisionParent(Parent):
     ALLOWED_ACTIONS = [Action.WAIT, Action.FETCH_TOY, Action.PASS_TOY]
 
     def __init__(self, unique_id, model, pos):

@@ -1,17 +1,18 @@
 import math
 import numpy as np
 
-from infant_abm.agents.infant import Infant, Params, actions
-from infant_abm.agents.infant.events import ToySelected, ToyThrown
+from infant_abm.agents import infant_actions
+from infant_abm.agents.infant import Infant, Params
+from infant_abm.agents.events import ToySelected, ToyThrown
 from infant_abm.agents.position import Position
 from infant_abm.agents.toy import Toy
 
 
 class NoVisionInfant(Infant):
     ALLOWED_ACTIONS = [
-        actions.LookForToy,
-        actions.Crawl,
-        actions.InteractWithToy,
+        infant_actions.LookForToy,
+        infant_actions.Crawl,
+        infant_actions.InteractWithToy,
     ]
 
     def __init__(self, unique_id, model, pos, params: Params):
@@ -19,7 +20,7 @@ class NoVisionInfant(Infant):
 
         self.target: Toy = None
 
-        self.next_action = actions.LookForToy()
+        self.next_action = infant_actions.LookForToy()
 
     def step(self):
         next_action = super()._perform_action(self.next_action)
@@ -52,7 +53,7 @@ class NoVisionInfant(Infant):
         self.target.interact()
         self.target = None
 
-        return actions.LookForToy()
+        return infant_actions.LookForToy()
 
     def _step_look_for_toy(self, _action):
         toys = self.model.get_toys()
@@ -64,15 +65,15 @@ class NoVisionInfant(Infant):
         self.velocity = Position.calc_norm_vector(self.pos, target.pos)
         self.target = target
         self.model.parent.handle_event(ToySelected(self.target))
-        return actions.Crawl()
+        return infant_actions.Crawl()
 
     def _step_crawl(self, _action):
         if self._target_in_range():
-            return actions.InteractWithToy()
+            return infant_actions.InteractWithToy()
 
         if self._gets_distracted():
             self.target = None
-            return actions.LookForToy()
+            return infant_actions.LookForToy()
 
         self._move()
-        return actions.Crawl()
+        return infant_actions.Crawl()

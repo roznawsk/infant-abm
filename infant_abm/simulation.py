@@ -5,6 +5,7 @@ import tqdm
 
 from copy import deepcopy
 
+from infant_abm.config import Config
 from infant_abm.model import InfantModel
 
 from infant_abm.agents.infant_actions import InteractWithToy, Crawl
@@ -57,7 +58,7 @@ class Simulation:
         for d in self.parameter_sets:
             d = deepcopy(d)
             infant_params = d.pop("infant_params")
-            config = d.pop("config")
+            config = d.pop("config", Config())
 
             parameter_sets.append({**infant_params.to_dict(), **config.to_dict(), **d})
 

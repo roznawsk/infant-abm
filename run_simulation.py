@@ -43,7 +43,7 @@ class Model_0_2_0:
     output_dir = "v0.2.0"
 
 
-def get_model_param_sets(linspace, base_params=dict()):
+def get_model_param_sets(model, linspace, base_params=dict()):
     lo, hi, num = linspace
     perception = np.linspace(lo, hi, num)
     persistence = np.linspace(lo, hi, num)
@@ -54,20 +54,16 @@ def get_model_param_sets(linspace, base_params=dict()):
     for param_set in itertools.product(*[perception, persistence, coordination]):
         i_params = InfantParams.from_array(param_set)
 
-        params.append({**base_params, "infant_params": i_params})
+        params.append(
+            {
+                **base_params,
+                "infant_params": i_params,
+                "infant_class": model.infant_class,
+                "parent_class": model.parent_class,
+            }
+        )
 
     return params
-
-
-def get_linspace_str(linspace):
-    return (
-        str(linspace)
-        .replace("(", "_")
-        .replace(")", "")
-        .replace(" ", "")
-        .replace(".", "")
-        .replace(",", "_")
-    )
 
 
 def run_basic_simulation(output_dir, parameter_sets, repeats=13, iterations=20000):
@@ -141,21 +137,19 @@ def run_comparative_boost_simulation():
 
 
 if __name__ == "__main__":
-    model = Model_0_2_0()
-    output_dir = f"./results/{model.output_dir}/test"
+    model = Model_0_1_0()
 
-    params = [
-        {
-            "infant_params": InfantParams.from_array([0.5, 0.5, 0.5]),
-            "infant_class": model.infant_class,
-            "parent_class": model.parent_class,
-            "config": Config(),
-        }
-    ]
+    grid = 10
+    repeats = 100
+    output_dir = f"./results/{model.output_dir}/success_{grid}_grid"
+
+    Path(output_dir).mkdir(exist_ok=False)
+
+    params = get_model_param_sets(model, linspace=(0.05, 0.95, grid))
 
     run_basic_simulation(
         output_dir=output_dir,
         parameter_sets=params,
-        iterations=100,
-        repeats=1,
+        iterations=20000,
+        repeats=repeats,
     )

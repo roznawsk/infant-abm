@@ -1,6 +1,7 @@
 import numpy as np
 import itertools
 import warnings
+import os
 
 from pathlib import Path
 
@@ -43,7 +44,10 @@ class Model_0_2_0:
     output_dir = "v0.2.0"
 
 
-def get_model_param_sets(linspace, base_params=dict()):
+ITERATIONS = 20000
+
+
+def get_model_param_sets(model, linspace, base_params=dict()):
     lo, hi, num = linspace
     perception = np.linspace(lo, hi, num)
     persistence = np.linspace(lo, hi, num)
@@ -54,29 +58,26 @@ def get_model_param_sets(linspace, base_params=dict()):
     for param_set in itertools.product(*[perception, persistence, coordination]):
         i_params = InfantParams.from_array(param_set)
 
-        params.append({**base_params, "infant_params": i_params})
+        params.append(
+            {
+                **base_params,
+                "infant_params": i_params,
+                "infant_class": model.infant_class,
+                "parent_class": model.parent_class,
+            }
+        )
 
     return params
 
 
-def get_linspace_str(linspace):
-    return (
-        str(linspace)
-        .replace("(", "_")
-        .replace(")", "")
-        .replace(" ", "")
-        .replace(".", "")
-        .replace(",", "_")
-    )
-
-
-def run_basic_simulation(output_dir, parameter_sets, repeats=13, iterations=20000):
+def run_basic_simulation(output_dir, parameter_sets, repeats=100):
     simulation = Simulation(
         model_param_sets=parameter_sets,
-        iterations=iterations,
+        iterations=ITERATIONS,
         repeats=repeats,
         output_dir=output_dir,
         display=True,
+        processes=os.cpu_count() - 1,
     )
 
     simulation.run()
@@ -84,50 +85,27 @@ def run_basic_simulation(output_dir, parameter_sets, repeats=13, iterations=2000
     return simulation
 
 
-def run_comparative_simulation():
-    repeats = 11
-    iterations = 15000
-
-    for infant_class in ["SeqVisionInfant"]:
-        base_params = {"infant_class": infant_class}
-        parameter_sets = get_model_param_sets((0.1, 0.9, 5), base_params=base_params)
-        output_path = f"../results/final_final_3/{infant_class}.hdf"
-
-        simulation = Simulation(
-            model_param_sets=parameter_sets,
-            iterations=iterations,
-            repeats=repeats,
-            output_path=output_path,
-            display=True,
-        )
-
-        simulation.run()
-
-
-def run_comparative_boost_simulation():
-    linspace = (0.1, 0.9, 5)
-
-    output_dir = "./results/model1/boost_improvement"
-    Path(output_dir).mkdir(parents=False, exist_ok=False)
-
-    lo, hi, num = linspace
+def run_comparative_boost_simulation(
+    model, repeats, output_dir, linspace, boost_linspace
+):
+    output_dir = f"./results/{model.output_dir}/{output_dir}"
+    Path(output_dir).mkdir(parents=True, exist_ok=False)
 
     perception, persistence, coordination = [
-        np.round(np.linspace(lo, hi, num), 3) for _ in range(3)
+        np.round(np.linspace(*linspace), 3) for _ in range(3)
     ]
 
-    boost = np.linspace(0, 1, 5)
+    boost = np.linspace(*boost_linspace)
     params = []
 
     for param_set in itertools.product(*[perception, persistence, coordination, boost]):
-        # for bst in boost:
         prc, prs, crd, bst = param_set
-
-        # prc, prs, crd = param_set
 
         i_params = InfantParams.from_array([prc, prs, crd])
         base_params = {
-            "config": Config(persistence_boost_value=bst, coordination_boost_value=bst)
+            "config": Config(persistence_boost_value=bst, coordination_boost_value=bst),
+            "infant_class": model.infant_class,
+            "parent_class": model.parent_class,
         }
 
         params.append({**base_params, "infant_params": i_params})
@@ -135,27 +113,39 @@ def run_comparative_boost_simulation():
     run_basic_simulation(
         output_dir=output_dir,
         parameter_sets=params,
-        iterations=20000,
-        repeats=13,
+        repeats=repeats,
     )
+
+
+def run_from_description(model, output_dir, repeats):
+    output_dir = f"./results/{model.output_dir}/{output_dir}"
+
+    simulation = Simulation.from_description(
+        output_dir=output_dir,
+        iterations=ITERATIONS,
+        repeats=repeats,
+        display=True,
+        processes=os.cpu_count() - 1,
+    )
+
+    simulation.run()
+
+    return simulation
 
 
 if __name__ == "__main__":
-    model = Model_0_2_0()
-    output_dir = f"./results/{model.output_dir}/test"
+    model = Model_0_1_1()
 
-    params = [
-        {
-            "infant_params": InfantParams.from_array([0.5, 0.5, 0.5]),
-            "infant_class": model.infant_class,
-            "parent_class": model.parent_class,
-            "config": Config(),
-        }
-    ]
+    grid = 3
+    boost = 1
+    repeats = 1
+    output_dir = f"success_{grid}_grid_{boost}_boost_test_no_array"
 
-    run_basic_simulation(
-        output_dir=output_dir,
-        parameter_sets=params,
-        iterations=100,
-        repeats=1,
+    linspace = (0.05, 0.95, grid)
+    boost_linspace = (0, 1, boost)
+
+    run_comparative_boost_simulation(
+        model, repeats, output_dir, linspace, boost_linspace
     )
+
+    # run_from_description(model, output_dir, repeats)

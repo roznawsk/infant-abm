@@ -59,7 +59,10 @@ class QLearningAgent:
 
     def _parent_looked_at_toy_after_infant(self):
         for i, obj in enumerate(self.model.infant.gaze_directions):
-            if isinstance(obj, Toy) and obj in self.model.parent.gaze_directions[i:]:
+            if (
+                isinstance(obj, Toy)
+                and obj in self.model.parent.gaze_directions[i : i + 5]
+            ):
                 return True
 
         return False

@@ -20,7 +20,9 @@ class QLearnInfant(Infant):
         infant_actions.InteractWithToy,
     ]
 
-    def __init__(self, unique_id, model, pos, params: Params):
+    def __init__(
+        self, unique_id, model, pos, params: Params, alpha=0.1, gamma=0.9, epsilon=0.1
+    ):
         super().__init__(unique_id, model, pos, params)
 
         self.gaze_directions = [None] * self.GAZE_HISTORY_SIZE
@@ -29,7 +31,11 @@ class QLearnInfant(Infant):
         self.last_reward = None
 
         self.q_learning_agent = QLearningAgent(
-            model=model, actions=self.get_q_actions()
+            model=model,
+            actions=self.get_q_actions(),
+            alpha=alpha,
+            gamma=gamma,
+            epsilon=epsilon,
         )
 
         self.next_action = infant_actions.LookForToy()

@@ -19,9 +19,14 @@ def load_run(run_path):
 
         for repeat, rep_result in result.items():
             for k, v in rep_result.items():
-                if isinstance(v, list) and len(v) == 2 and v[0] == "ndarray":
+                if isinstance(v, list) and v[0] == "ndarray":
                     data_path = path.join(partial_dir, str(repeat), str(k))
-                    result[repeat][k] = np.fromfile(data_path, dtype=v[1])
+
+                    shape = [int(s) for s in v[2]]
+
+                    result[repeat][k] = np.fromfile(data_path, dtype=v[1]).reshape(
+                        shape
+                    )
 
         return result
 
@@ -51,7 +56,7 @@ def save_partial(run_path: str, index: int, result: dict):
                 arr_path = path.join(repetition_dir, str(k))
                 v.tofile(arr_path)
 
-                result[repetition][k] = [("ndarray"), str(v.dtype)]
+                result[repetition][k] = [("ndarray"), str(v.dtype), v.shape]
 
     with open(partial_path, "w") as file:
         json.dump(result, file)

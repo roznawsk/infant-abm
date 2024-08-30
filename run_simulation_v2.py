@@ -8,9 +8,6 @@ from infant_abm import Config, InfantParams
 from infant_abm.simulation import (
     Simulation,
     DataCollector,
-    Model_0_1_0,  # noqa: F401
-    Model_0_1_1,  # noqa: F401
-    Model_0_1_2,  # noqa: F401
     Model_0_2_0,  # noqa: F401
 )
 
@@ -45,30 +42,30 @@ def run_basic_simulation(
 
 
 def run_comparative_boost_simulation(
-    model,
-    collector,
-    run_name,
-    iterations,
-    repeats,
-    linspace,
-    boost_linspace=(0, 0, 1),
+    model, collector, run_name, iterations, repeats, linspace, q_learn_params
 ):
     perception, persistence, coordination = [
         np.round(np.linspace(*linspace), 3) for _ in range(3)
     ]
 
-    boost = np.linspace(*boost_linspace)
     params = []
 
-    for param_set in itertools.product(*[perception, persistence, coordination, boost]):
-        prc, prs, crd, bst = param_set
+    for param_set in itertools.product(
+        *[perception, persistence, coordination, q_learn_params]
+    ):
+        prc, prs, crd, q_lrn = param_set
 
         i_params = InfantParams.from_array([prc, prs, crd])
         base_params = {
-            "config": Config(persistence_boost_value=bst, coordination_boost_value=bst),
+            "config": Config(),
         }
 
-        params.append({**base_params, "infant_params": i_params})
+        a, g, e = q_lrn
+        kwargs = {"alpha": a, "gamma": g, "epsilon": e}
+
+        params.append(
+            {**base_params, "infant_params": i_params, "infant_kwargs": kwargs}
+        )
 
     run_basic_simulation(
         run_name=run_name,
@@ -96,42 +93,46 @@ def run_from_description(model, output_dir, repeats):
     return simulation
 
 
-class v1Collector(DataCollector):
+class v2Collector(DataCollector):
     def __init__(self, model):
         super().__init__(model)
-        self.goal_dist_iteration = None
+
+        self.rewards = []
 
     def after_step(self):
-        if self.model.get_middle_dist() < SUCCESS_DIST:
-            self.goal_dist_iteration = self.model._steps
-            return False
+        self.rewards.append(self.model.infant.last_reward)
         return True
 
     def to_dict(self):
         return {
-            "goal_dist": self.goal_dist_iteration,
+            "rewards": np.array(self.rewards),
+            "q_table": self.model.infant.q_learning_agent.q_table,
         }
 
 
 if __name__ == "__main__":
     model = Model_0_2_0()
-    collector = v1Collector
+    collector = v2Collector
 
     grid = 2
-    boost = 1
     repeats = 1
-    run_name = "test_collect"
+    run_name = "test_learn_100k"
+    q_learn_params = list(
+        itertools.product(
+            *[[0.05, 0.1, 0.15], [0.5, 0.7, 0.8, 0.9, 0.95], [0.01, 0.05, 0.1]]
+        )
+    )
 
     linspace = (0.35, 0.65, grid)
-    boost_linspace = (0, 1, boost)
 
     run_comparative_boost_simulation(
         model=model,
-        iterations=50000,
+        iterations=100000,
         collector=collector,
         run_name=run_name,
         repeats=repeats,
         linspace=linspace,
+        q_learn_params=q_learn_params,
     )
 
     # run_from_description(model, output_dir, repeats)

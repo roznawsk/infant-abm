@@ -20,6 +20,7 @@ pytest = "^8.2.2"
 scikit-learn = "^1.5.1"
 fitter = "^1.7.1"
 seaborn = "^0.13.2"
+networkx = "^3.3"
 
 [build-system]
 requires = ["poetry-core"]

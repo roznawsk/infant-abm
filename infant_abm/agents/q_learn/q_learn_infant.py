@@ -10,21 +10,7 @@ from infant_abm.agents.q_learn.q_learning_agent import QLearningAgent
 
 
 class QLearnInfant(Infant):
-    # Agent constants
-
-    # TOY_EVALUATION_DURATION = 3
-    # THROW_EVALUATION_DURATION = 20
-
     PERSISTENCE_BOOST_DURATION = 20
-
-    # COORDINATION_BOOST_VALUE = 0.2
-    # PERSISTENCE_BOOST_VALUE = 0.2
-
-    # TOY_EVALUATION_PARENT_CHANCE = 0.7
-    # TOY_EVALUATION_INFANT_CHANCE = 0.7
-
-    # THROW_EVALUATION_PARENT_CHANCE = 0.7
-    # THROW_EVALUATION_INFANT_CHANCE = 0.7
 
     GAZE_HISTORY_SIZE = 11
 
@@ -40,6 +26,7 @@ class QLearnInfant(Infant):
         self.gaze_directions = [None] * self.GAZE_HISTORY_SIZE
         self.current_persistence_boost_duration = 0
         self.q_learning_state = None
+        self.last_reward = None
 
         self.q_learning_agent = QLearningAgent(
             model=model, actions=self.get_q_actions()
@@ -62,22 +49,22 @@ class QLearnInfant(Infant):
 
     def advance(self):
         next_state = self.q_learning_agent.get_state()
-        reward = self.q_learning_agent.reward(next_state)
+        self.last_reward = self.q_learning_agent.reward(next_state)
         self.q_learning_agent.update_q_table(
-            self.q_learning_state, self.gaze_directions[-1], reward, next_state
+            self.q_learning_state,
+            self.gaze_directions[-1],
+            self.last_reward,
+            next_state,
         )
 
-        # print(f"{self.gaze_directions[-2:]}, {self.model.parent.gaze_directions[-2:]}")
-
         if np.random.rand() < 0.005:
-            # print(next_state)
-            # print(self.model.q_learning_agent.q_table)
-            print(
-                {
-                    state: np.argmax(self.q_learning_agent.q_table[state])
-                    for state in range(8)
-                }
-            )
+            pass
+            # print(
+            #     {
+            #         state: np.argmax(self.q_learning_agent.q_table[state])
+            #         for state in range(8)
+            #     }
+            # )
 
     def get_q_actions(self):
         return [None, self.model.parent] + self.model.get_toys()

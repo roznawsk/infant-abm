@@ -63,15 +63,6 @@ class QLearnInfant(Infant):
             next_state,
         )
 
-        if np.random.rand() < 0.005:
-            pass
-            # print(
-            #     {
-            #         state: np.argmax(self.q_learning_agent.q_table[state])
-            #         for state in range(8)
-            #     }
-            # )
-
     def get_q_actions(self):
         return [None, self.model.parent] + self.model.get_toys()
 
@@ -130,20 +121,3 @@ class QLearnInfant(Infant):
             self.params.persistence.reset()
 
         return infant_actions.Crawl()
-
-    def _get_q_state(self):
-        return (
-            self.last_action.number,
-            self._get_agent_gaze_direction(self),
-            self._get_agent_gaze_direction(self.model.parent),
-        )
-
-    def _get_agent_gaze_direction(self, agent):
-        if agent.gaze_direction is None:
-            return 0
-        elif agent.gaze_direction == self.model.parent:
-            return 1
-        else:
-            gaze_direction = agent.gaze_direction.unique_id + 2
-            assert gaze_direction >= 2 and gaze_direction <= 5
-            return gaze_direction

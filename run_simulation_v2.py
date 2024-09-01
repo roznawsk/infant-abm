@@ -11,12 +11,7 @@ from infant_abm.simulation import (
     Model_0_2_0,  # noqa: F401
 )
 
-
 warnings.simplefilter(action="ignore", category=FutureWarning)
-
-
-ITERATIONS = 20000
-SUCCESS_DIST = 10
 
 is_mac = "macOS" in platform.platform()
 PROCESSES = os.cpu_count() - 1 if is_mac else os.cpu_count()
@@ -77,12 +72,12 @@ def run_comparative_boost_simulation(
     )
 
 
-def run_from_description(model, output_dir, repeats):
+def run_from_description(model, iterations, output_dir, repeats):
     output_dir = f"./results/{model.output_dir}/{output_dir}"
 
     simulation = Simulation.from_description(
         output_dir=output_dir,
-        iterations=ITERATIONS,
+        iterations=iterations,
         repeats=repeats,
         display=True,
         processes=os.cpu_count() - 1,
@@ -114,20 +109,18 @@ if __name__ == "__main__":
     model = Model_0_2_0()
     collector = v2Collector
 
-    grid = 2
-    repeats = 1
-    run_name = "test_learn_100k"
+    grid = 4
+    repeats = 100
+    run_name = "q_learn_50k"
     q_learn_params = list(
-        itertools.product(
-            *[[0.05, 0.1, 0.15], [0.5, 0.7, 0.8, 0.9, 0.95], [0.01, 0.05, 0.1]]
-        )
+        itertools.product(*[[0.05, 0.1, 0.15], [0.7, 0.9, 0.95], [0.01, 0.05, 0.1]])
     )
 
-    linspace = (0.35, 0.65, grid)
+    linspace = (0.2, 0.8, grid)
 
     run_comparative_boost_simulation(
         model=model,
-        iterations=100000,
+        iterations=50000,
         collector=collector,
         run_name=run_name,
         repeats=repeats,

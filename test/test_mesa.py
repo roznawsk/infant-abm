@@ -1,6 +1,7 @@
 from pathlib import Path
-from infant_abm import Simulation, InfantParams
+from infant_abm import InfantParams
 from infant_abm.config import Config
+from infant_abm.simulation import Simulation
 
 from infant_abm.agents import (
     SpatialVisionInfant,

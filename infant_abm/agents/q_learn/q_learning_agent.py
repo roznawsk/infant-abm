@@ -37,11 +37,15 @@ class QLearningAgent:
     def get_state(self):
         # [infant_looked_at_toy, parent_looked_at_toy, mutual_gaze]
 
+        index, parent_looked = self._parent_looked_at_toy_after_infant()
+        print(index)
+        mutual_gaze = self._mutual_gaze() and (index is None or index >= 5)
+
         raw_state = np.array(
             [
                 int(self._infant_looked_at_toy()),
-                int(self._parent_looked_at_toy_after_infant()),
-                int(self._mutual_gaze()),
+                int(parent_looked),
+                int(mutual_gaze),
             ]
         )
 
@@ -58,14 +62,13 @@ class QLearningAgent:
         return any([isinstance(obj, Toy) for obj in self.model.infant.gaze_directions])
 
     def _parent_looked_at_toy_after_infant(self):
-        for i, obj in enumerate(self.model.infant.gaze_directions):
-            if (
-                isinstance(obj, Toy)
-                and obj in self.model.parent.gaze_directions[i : i + 5]
-            ):
-                return True
+        for i, obj in reversed(list(enumerate(self.model.infant.gaze_directions))):
+            if isinstance(obj, Toy):
+                for j in range(i + 1, min(i + 6, 11)):
+                    if self.model.parent.gaze_directions[j] == obj:
+                        return j, True
 
-        return False
+        return None, False
 
     def _mutual_gaze(self):
         return (

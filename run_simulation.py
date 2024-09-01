@@ -2,82 +2,41 @@ import numpy as np
 import itertools
 import warnings
 import os
+import platform
 
-from pathlib import Path
-
-from infant_abm import Simulation, Config, InfantParams
-from infant_abm.agents import (
-    NoVisionInfant,
-    NoVisionParent,
-    SpatialVisionInfant,
-    SpatialVisionParent,
-    AbstractVisionInfant,
-    AbstractVisionParent,
-    QLearnInfant,
-    QLearnParent,
+from infant_abm import Config, InfantParams
+from infant_abm.simulation import (
+    Simulation,
+    DataCollector,
+    Model_0_1_0,  # noqa: F401
+    Model_0_1_1,  # noqa: F401
+    Model_0_1_2,  # noqa: F401
+    Model_0_2_0,  # noqa: F401
 )
+
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
-class Model_0_1_0:
-    infant_class = NoVisionInfant
-    parent_class = NoVisionParent
-    output_dir = "v0.1.0"
-
-
-class Model_0_1_1:
-    infant_class = SpatialVisionInfant
-    parent_class = SpatialVisionParent
-    output_dir = "v0.1.1"
-
-
-class Model_0_1_2:
-    infant_class = AbstractVisionInfant
-    parent_class = AbstractVisionParent
-    output_dir = "v0.1.2"
-
-
-class Model_0_2_0:
-    infant_class = QLearnInfant
-    parent_class = QLearnParent
-    output_dir = "v0.2.0"
-
-
 ITERATIONS = 20000
+SUCCESS_DIST = 10
+
+is_mac = "macOS" in platform.platform()
+PROCESSES = os.cpu_count() - 1 if is_mac else os.cpu_count()
 
 
-def get_model_param_sets(model, linspace, base_params=dict()):
-    lo, hi, num = linspace
-    perception = np.linspace(lo, hi, num)
-    persistence = np.linspace(lo, hi, num)
-    coordination = np.linspace(lo, hi, num)
-
-    params = []
-
-    for param_set in itertools.product(*[perception, persistence, coordination]):
-        i_params = InfantParams.from_array(param_set)
-
-        params.append(
-            {
-                **base_params,
-                "infant_params": i_params,
-                "infant_class": model.infant_class,
-                "parent_class": model.parent_class,
-            }
-        )
-
-    return params
-
-
-def run_basic_simulation(output_dir, parameter_sets, repeats=100):
+def run_basic_simulation(
+    model, run_name, collector, parameter_sets, iterations, repeats=100
+):
     simulation = Simulation(
+        model=model,
         model_param_sets=parameter_sets,
-        iterations=ITERATIONS,
+        iterations=iterations,
         repeats=repeats,
-        output_dir=output_dir,
+        run_name=run_name,
+        datacollector=collector,
         display=True,
-        processes=os.cpu_count() - 1,
+        processes=PROCESSES,
     )
 
     simulation.run()
@@ -86,11 +45,14 @@ def run_basic_simulation(output_dir, parameter_sets, repeats=100):
 
 
 def run_comparative_boost_simulation(
-    model, repeats, output_dir, linspace, boost_linspace
+    model,
+    collector,
+    run_name,
+    iterations,
+    repeats,
+    linspace,
+    boost_linspace=(0, 0, 1),
 ):
-    output_dir = f"./results/{model.output_dir}/{output_dir}"
-    Path(output_dir).mkdir(parents=True, exist_ok=False)
-
     perception, persistence, coordination = [
         np.round(np.linspace(*linspace), 3) for _ in range(3)
     ]
@@ -104,14 +66,15 @@ def run_comparative_boost_simulation(
         i_params = InfantParams.from_array([prc, prs, crd])
         base_params = {
             "config": Config(persistence_boost_value=bst, coordination_boost_value=bst),
-            "infant_class": model.infant_class,
-            "parent_class": model.parent_class,
         }
 
         params.append({**base_params, "infant_params": i_params})
 
     run_basic_simulation(
-        output_dir=output_dir,
+        run_name=run_name,
+        model=model,
+        iterations=iterations,
+        collector=collector,
         parameter_sets=params,
         repeats=repeats,
     )
@@ -133,19 +96,42 @@ def run_from_description(model, output_dir, repeats):
     return simulation
 
 
-if __name__ == "__main__":
-    model = Model_0_1_1()
+class v1Collector(DataCollector):
+    def __init__(self, model):
+        super().__init__(model)
+        self.goal_dist_iteration = None
 
-    grid = 3
+    def after_step(self):
+        if self.model.get_middle_dist() < SUCCESS_DIST:
+            self.goal_dist_iteration = self.model._steps
+            return False
+        return True
+
+    def to_dict(self):
+        return {
+            "goal_dist": self.goal_dist_iteration,
+        }
+
+
+if __name__ == "__main__":
+    model = Model_0_2_0()
+    collector = v1Collector
+
+    grid = 2
     boost = 1
     repeats = 1
-    output_dir = f"success_{grid}_grid_{boost}_boost_test_no_array"
+    run_name = "test_collect"
 
-    linspace = (0.05, 0.95, grid)
+    linspace = (0.35, 0.65, grid)
     boost_linspace = (0, 1, boost)
 
     run_comparative_boost_simulation(
-        model, repeats, output_dir, linspace, boost_linspace
+        model=model,
+        iterations=50000,
+        collector=collector,
+        run_name=run_name,
+        repeats=repeats,
+        linspace=linspace,
     )
 
     # run_from_description(model, output_dir, repeats)

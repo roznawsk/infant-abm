@@ -32,6 +32,7 @@ class InfantModel(mesa.Model):
         perception=None,
         persistence=None,
         coordination=None,
+        infant_kwargs=dict(),
     ):
         mesa.Model.__init__(self)
 
@@ -59,12 +60,12 @@ class InfantModel(mesa.Model):
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            self.make_agents(infant_params)
+            self.make_agents(infant_params, infant_kwargs)
 
         self.config = config
         self._apply_config(config)
 
-    def make_agents(self, infant_params):
+    def make_agents(self, infant_params, infant_kwargs):
         self.toys = self._create_toys()
 
         parent_x = np.random.uniform(0.25, 0.75) * Position.x_max
@@ -83,6 +84,7 @@ class InfantModel(mesa.Model):
             unique_id=self._next_agent_id(),
             pos=np.array([x, y]),
             params=infant_params,
+            **infant_kwargs,
         )
 
         for agent in self.toys + [self.infant] + [self.parent]:

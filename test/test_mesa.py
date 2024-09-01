@@ -94,7 +94,7 @@ def test_model_v0_1_2():
 
 def test_model_v0_2_0():
     simulation = run_basic_scenario(
-        model=Model_0_1_2(),
+        model=Model_0_2_0(),
         infant_params=infant_params,
     )
     _output_dir = simulation.output_dir

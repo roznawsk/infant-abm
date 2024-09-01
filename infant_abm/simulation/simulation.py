@@ -22,6 +22,8 @@ from infant_abm.agents import (
     AbstractVisionParent,
     QLearnDetachedInfant,
     QLearnDetachedParent,
+    QLearnPairedInfant,
+    QLearnPairedParent,
 )
 
 from infant_abm.db_utils import partial_exists, save_partial
@@ -49,6 +51,12 @@ class Model_0_2_0:
     infant_class = QLearnDetachedInfant
     parent_class = QLearnDetachedParent
     output_dir = "v0.2.0"
+
+
+class Model_0_2_1:
+    infant_class = QLearnPairedInfant
+    parent_class = QLearnPairedParent
+    output_dir = "v0.2.1"
 
 
 class DataCollector(ABC):

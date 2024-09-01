@@ -8,6 +8,7 @@ from infant_abm.simulation import (
     Model_0_1_1,
     Model_0_1_2,
     Model_0_2_0,
+    Model_0_2_1,
 )
 
 infant_params = InfantParams.from_array([0.5, 0.5, 0.5])
@@ -95,6 +96,14 @@ def test_model_v0_1_2():
 def test_model_v0_2_0():
     simulation = run_basic_scenario(
         model=Model_0_2_0(),
+        infant_params=infant_params,
+    )
+    _output_dir = simulation.output_dir
+
+
+def test_model_v0_2_1():
+    simulation = run_basic_scenario(
+        model=Model_0_2_1(),
         infant_params=infant_params,
     )
     _output_dir = simulation.output_dir

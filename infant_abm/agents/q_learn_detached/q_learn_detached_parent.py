@@ -7,7 +7,7 @@ from infant_abm.agents import Toy
 from infant_abm.agents.position import Position
 
 
-class QLearnParent(Parent):
+class QLearnDetachedParent(Parent):
     GAZE_HISTORY_SIZE = 11
 
     ALLOWED_ACTIONS = [Action.WAIT, Action.PASS_TOY]

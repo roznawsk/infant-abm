@@ -14,8 +14,8 @@ from .no_vision.no_vision_parent import NoVisionParent
 from .spatial_vision.spatial_vision_infant import SpatialVisionInfant
 from .spatial_vision.spatial_vision_parent import SpatialVisionParent
 
-from .q_learn.q_learn_infant import QLearnInfant
-from .q_learn.q_learn_parent import QLearnParent
+from .q_learn_detached.q_learn_detached_infant import QLearnDetachedInfant
+from .q_learn_detached.q_learn_detached_parent import QLearnDetachedParent
 
 __all__ = (
     "Agent",
@@ -25,10 +25,10 @@ __all__ = (
     "NoVisionInfant",
     "SpatialVisionInfant",
     "AbstractVisionInfant",
-    "QLearnInfant",
+    "QLearnDetachedInfant",
     "Parent",
     "NoVisionParent",
     "SpatialVisionParent",
     "AbstractVisionParent",
-    "QLearnParent",
+    "QLearnDetachedParent",
 )

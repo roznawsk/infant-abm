@@ -6,10 +6,10 @@ from infant_abm.agents.events import ToyThrown
 from infant_abm.agents.position import Position
 from infant_abm.agents.infant import infant_actions
 
-from infant_abm.agents.q_learn.q_learning_agent import QLearningAgent
+from infant_abm.agents.q_learn_detached.q_learning_agent import QLearningAgent
 
 
-class QLearnInfant(Infant):
+class QLearnDetachedInfant(Infant):
     PERSISTENCE_BOOST_DURATION = 20
 
     GAZE_HISTORY_SIZE = 11

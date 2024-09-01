@@ -20,8 +20,8 @@ from infant_abm.agents import (
     SpatialVisionParent,
     AbstractVisionInfant,
     AbstractVisionParent,
-    QLearnInfant,
-    QLearnParent,
+    QLearnDetachedInfant,
+    QLearnDetachedParent,
 )
 
 from infant_abm.db_utils import partial_exists, save_partial
@@ -46,8 +46,8 @@ class Model_0_1_2:
 
 
 class Model_0_2_0:
-    infant_class = QLearnInfant
-    parent_class = QLearnParent
+    infant_class = QLearnDetachedInfant
+    parent_class = QLearnDetachedParent
     output_dir = "v0.2.0"
 
 
@@ -87,7 +87,7 @@ class Simulation:
         self.base_dir = output_dir
 
         if run_name is None:
-            run_name = uuid.uuid4()[:7]
+            run_name = str(uuid.uuid4())[:7]
         self.run_name = run_name
 
         self._validate_output_path()

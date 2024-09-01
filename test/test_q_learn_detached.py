@@ -3,13 +3,12 @@ from infant_abm.config import Config
 
 
 from infant_abm.model import InfantModel
-
-from infant_abm.agents import QLearnInfant, QLearnParent
+from infant_abm.agents import QLearnDetachedInfant, QLearnDetachedParent
 
 
 model = InfantModel(
-    infant_class=QLearnInfant,
-    parent_class=QLearnParent,
+    infant_class=QLearnDetachedInfant,
+    parent_class=QLearnDetachedParent,
     config=Config(),
     infant_params=InfantParams.from_array([0.5, 0.5, 0.5]),
 )

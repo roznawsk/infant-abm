@@ -2,9 +2,8 @@ import numpy as np
 
 from infant_abm.agents.toy import Toy
 
-STATE_SPACE = np.array([2, 2, 2])
+STATE_SPACE = np.array([2, 2, 2, 2])
 STATE_SPACE_SIZE = np.multiply.reduce(STATE_SPACE)
-GOAL_STATE = np.array([1, 1, 1])
 
 
 class QLearningAgent:
@@ -38,25 +37,33 @@ class QLearningAgent:
         # [infant_looked_at_toy, parent_looked_at_toy, mutual_gaze]
 
         index, parent_looked = self._parent_looked_at_toy_after_infant()
-        print(index)
         mutual_gaze = self._mutual_gaze() and (index is None or index >= 5)
 
         raw_state = np.array(
             [
+                int(self._paired_activity()),
                 int(self._infant_looked_at_toy()),
                 int(parent_looked),
                 int(mutual_gaze),
             ]
         )
 
-        multiplier = np.array([4, 2, 1])
+        multiplier = np.array([8, 4, 2, 1])
         return np.sum(raw_state * multiplier)
 
     def reward(self, state):
-        if np.all(state == GOAL_STATE):
+        if np.all(state == np.array([0, 1, 1, 1])):
             return 1
+        elif np.all(state == np.array([1, 1, 1, 1])):
+            return 10
         else:
             return 0
+
+    def _paired_activity(self):
+        return (
+            self.model.infant.last_thrown_toy == self.model.parent.last_thrown_toy
+            and self.model._steps == self.model.parent.last_thrown_toy
+        )
 
     def _infant_looked_at_toy(self):
         return any([isinstance(obj, Toy) for obj in self.model.infant.gaze_directions])

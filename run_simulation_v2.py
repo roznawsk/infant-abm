@@ -9,6 +9,7 @@ from infant_abm.simulation import (
     Simulation,
     DataCollector,
     Model_0_2_0,  # noqa: F401
+    Model_0_2_1,  # noqa: F401
 )
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -106,21 +107,22 @@ class v2Collector(DataCollector):
 
 
 if __name__ == "__main__":
-    model = Model_0_2_0()
+    model = Model_0_2_1()
     collector = v2Collector
 
-    grid = 4
-    repeats = 100
-    run_name = "q_learn_50k"
+    iterations = 100_000
+    grid = 2
+    repeats = 10
+    run_name = "test_q_learnv2_100k"
     q_learn_params = list(
-        itertools.product(*[[0.05, 0.1, 0.15], [0.7, 0.9, 0.95], [0.01, 0.05, 0.1]])
+        itertools.product(*[[0.08, 0.13], [0.5, 0.7, 0.8], [0.005, 0.01, 0.05]])
     )
 
-    linspace = (0.2, 0.8, grid)
+    linspace = (0.3, 0.7, grid)
 
     run_comparative_boost_simulation(
         model=model,
-        iterations=50000,
+        iterations=iterations,
         collector=collector,
         run_name=run_name,
         repeats=repeats,

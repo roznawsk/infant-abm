@@ -6,7 +6,7 @@ from infant_abm.agents.events import ToyThrown
 from infant_abm.agents.position import Position
 from infant_abm.agents.infant import infant_actions
 
-from infant_abm.agents.q_learn_detached.q_learning_agent import QLearningAgent
+from infant_abm.agents.q_learn_paired.q_learning_agent import QLearningAgent
 
 
 class QLearnPairedInfant(Infant):
@@ -29,6 +29,9 @@ class QLearnPairedInfant(Infant):
         self.current_persistence_boost_duration = 0
         self.q_learning_state = None
         self.last_reward = None
+
+        self.last_thrown_toy = None
+        self.last_thrown_toy_step = None
 
         self.q_learning_agent = QLearningAgent(
             model=model,
@@ -98,6 +101,9 @@ class QLearnPairedInfant(Infant):
 
         new_pos = self.target.pos + throw_direction
         self.target.move_agent(new_pos)
+
+        self.last_thrown_toy = self.target
+        self.last_thrown_toy_step = self.model._steps
 
         self.target.interact()
         self.model.parent.handle_event(ToyThrown(self.target))

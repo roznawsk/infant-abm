@@ -38,7 +38,6 @@ class QLearningAgent:
         # [infant_looked_at_toy, parent_looked_at_toy, mutual_gaze]
 
         index, parent_looked = self._parent_looked_at_toy_after_infant()
-        print(index)
         mutual_gaze = self._mutual_gaze() and (index is None or index >= 5)
 
         raw_state = np.array(

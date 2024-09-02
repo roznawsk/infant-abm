@@ -20,6 +20,9 @@ class QLearnPairedParent(Parent):
 
         self.target = None
 
+        self.last_thrown_toy = None
+        self.last_thrown_toy_step = None
+
         self.next_action = Action.WAIT
 
     def step(self):
@@ -39,7 +42,9 @@ class QLearnPairedParent(Parent):
 
         new_pos = self.pos + throw_direction
         self.target.move_agent(new_pos)
-        self.rotate_towards(new_pos)
+
+        self.last_thrown_toy = self.target
+        self.last_thrown_toy_step = self.model._steps
 
         self.target = None
         return Action.WAIT

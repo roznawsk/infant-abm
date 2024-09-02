@@ -27,7 +27,10 @@ def load_run(run_path):
                     result[repeat][k] = np.fromfile(data_path, dtype=v[1]).reshape(
                         shape
                     )
+                elif isinstance(v, str) and "goal_dist" in v:
+                    data_path = path.join(partial_dir, str(repeat), str(k))
 
+                    result[repeat][k] = np.fromfile(data_path)
         return result
 
     return description_df, load_partial

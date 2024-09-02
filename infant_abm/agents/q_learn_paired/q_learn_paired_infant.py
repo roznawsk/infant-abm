@@ -32,6 +32,7 @@ class QLearnPairedInfant(Infant):
 
         self.last_thrown_toy = None
         self.last_thrown_toy_step = None
+        self.last_mutual_gaze = -np.inf
 
         self.q_learning_agent = QLearningAgent(
             model=model,
@@ -65,6 +66,12 @@ class QLearnPairedInfant(Infant):
             self.last_reward,
             next_state,
         )
+
+        if (
+            self.gaze_directions[-1] == self.model.parent
+            and self.model.parent.gaze_directions[-1] == self.model.infant
+        ):
+            self.last_mutual_gaze = self.model._steps
 
     def get_q_actions(self):
         return [None, self.model.parent] + self.model.get_toys()

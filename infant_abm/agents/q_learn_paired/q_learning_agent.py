@@ -4,6 +4,7 @@ from infant_abm.agents.toy import Toy
 
 STATE_SPACE = np.array([2, 2, 2, 2])
 STATE_SPACE_SIZE = np.multiply.reduce(STATE_SPACE)
+MAX_STEPS_AFTER_GAZE = 50
 
 
 class QLearningAgent:
@@ -63,6 +64,7 @@ class QLearningAgent:
         return (
             self.model.infant.last_thrown_toy == self.model.parent.last_thrown_toy
             and self.model._steps == self.model.parent.last_thrown_toy
+            and self.model._steps - MAX_STEPS_AFTER_GAZE <= self.model.infant.last_gaze
         )
 
     def _infant_looked_at_toy(self):

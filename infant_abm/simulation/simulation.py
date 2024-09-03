@@ -33,18 +33,21 @@ class Model_0_1_0:
     infant_class = NoVisionInfant
     parent_class = NoVisionParent
     output_dir = "v0.1.0"
+    repeats = 991
 
 
 class Model_0_1_1:
     infant_class = SpatialVisionInfant
     parent_class = SpatialVisionParent
     output_dir = "v0.1.1"
+    repeats = 483
 
 
 class Model_0_1_2:
     infant_class = AbstractVisionInfant
     parent_class = AbstractVisionParent
     output_dir = "v0.1.2"
+    repeats = 516
 
 
 class Model_0_2_0:
@@ -104,20 +107,30 @@ class Simulation:
         self._maybe_save_description()
 
     def run(self):
-        n_runs = len(self.parameter_sets)
-
-        file_size = 8 * self.iterations * 3 * n_runs / 1024 / 1024 + 1
-        if self.display:
-            print(f"Runs no: {n_runs}, estimated output size: {file_size:.2f}MB")
-
         pool = multiprocessing.Pool(processes=self.processes)
 
-        for _ in tqdm.tqdm(
-            pool.imap(self._run_param_set, enumerate(self.parameter_sets), chunksize=1),
-            total=len(self.parameter_sets),
+        run_parameters = [
+            (index, repeat, params)
+            for repeat in range(self.repeats)
+            for index, params in enumerate(self.parameter_sets)
+        ]
+
+        partial_results = dict()
+
+        for index, repeat, result in tqdm.tqdm(
+            pool.imap(self._single_run_param_set, run_parameters, chunksize=4),
+            total=len(run_parameters),
             disable=not self.display,
         ):
-            pass
+            repeat = str(repeat)
+            if index not in partial_results:
+                partial_results[index] = dict()
+
+            partial_results[index][repeat] = result
+
+            if len(partial_results[index]) == self.repeats:
+                save_partial(self.output_dir, index, partial_results[index])
+                del partial_results[index]
 
     @staticmethod
     def from_description(
@@ -192,22 +205,8 @@ class Simulation:
         out_df = pd.DataFrame(data, columns=columns)
         out_df.to_csv(desc_path)
 
-    def _run_param_set(self, param_set):
-        index, param_set = param_set
-
-        if partial_exists(self.output_dir, index):
-            return
-
-        result = dict()
-
-        for repetition in range(self.repeats):
-            result[str(repetition)] = self._single_run_param_set(
-                param_set, index, repetition
-            )
-
-        save_partial(self.output_dir, index, result)
-
-    def _single_run_param_set(self, param_set, index, repetition):
+    def _single_run_param_set(self, args):
+        index, repeat, param_set = args
         model = InfantModel(
             infant_class=self.model.infant_class,
             parent_class=self.model.parent_class,
@@ -222,9 +221,13 @@ class Simulation:
             if not collector.after_step():
                 break
 
-        return {
-            "iterations": self.iterations,
-            "index": index,
-            "repetition": repetition,
-            **collector.to_dict(),
-        }
+        return (
+            index,
+            repeat,
+            {
+                "iterations": self.iterations,
+                "index": index,
+                "repetition": repeat,
+                **collector.to_dict(),
+            },
+        )

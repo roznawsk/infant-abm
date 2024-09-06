@@ -6,8 +6,6 @@ import pandas as pd
 import tqdm
 import logging
 
-from abc import ABC, abstractmethod
-
 from copy import deepcopy
 
 from infant_abm.config import Config
@@ -26,7 +24,8 @@ from infant_abm.agents import (
     QLearnPairedParent,
 )
 
-from infant_abm.db_utils import partial_exists, save_partial
+from infant_abm.db_utils import save_partial
+from infant_abm.simulation.collectors import DataCollector
 
 
 class Model_0_1_0:
@@ -60,19 +59,6 @@ class Model_0_2_1:
     infant_class = QLearnPairedInfant
     parent_class = QLearnPairedParent
     output_dir = "v0.2.1"
-
-
-class DataCollector(ABC):
-    def __init__(self, model):
-        self.model = model
-
-    @abstractmethod
-    def after_step(self):
-        pass
-
-    @abstractmethod
-    def to_dict(self):
-        pass
 
 
 class Simulation:

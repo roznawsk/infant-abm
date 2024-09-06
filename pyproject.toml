@@ -21,6 +21,7 @@ scikit-learn = "^1.5.1"
 fitter = "^1.7.1"
 seaborn = "^0.13.2"
 networkx = "^3.3"
+ipynb = "^0.5.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -114,12 +114,12 @@ class v1Collector(DataCollector):
 
 
 if __name__ == "__main__":
-    model = Model_0_2_0()
+    model = Model_0_1_0()
     collector = v1Collector
 
-    grid = 2
+    grid = 7
     boost = 1
-    repeats = 1
+    repeats = 13
     run_name = "test_collect"
 
     linspace = (0.35, 0.65, grid)
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
     run_comparative_boost_simulation(
         model=model,
-        iterations=50000,
+        iterations=100,
         collector=collector,
         run_name=run_name,
         repeats=repeats,

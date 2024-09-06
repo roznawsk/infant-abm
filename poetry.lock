@@ -707,6 +707,17 @@ pyside6 = ["pyside6"]
 test = ["flaky", "ipyparallel", "pre-commit", "pytest (>=7.0)", "pytest-asyncio (>=0.23.5)", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "ipynb"
+version = "0.5.1"
+description = "Package / Module importer for importing code from Jupyter Notebook files (.ipynb)"
+optional = false
+python-versions = ">=3.4"
+files = [
+    {file = "ipynb-0.5.1-py3-none-any.whl", hash = "sha256:9686aafce6fd58ec160fa6ba649a7810df89cc0f06a317188ac5e59fd728e325"},
+    {file = "ipynb-0.5.1.tar.gz", hash = "sha256:8d834c777ca3885289938728cc382f081c86a58e92961e86f0aba60c96938ce5"},
+]
+
+[[package]]
 name = "ipython"
 version = "8.26.0"
 description = "IPython: Productive Interactive Computing"
@@ -2960,4 +2971,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3b4f4142ffacd5e6680afc5f3741cec8f833622d5eb4793ae044606791dfbd6c"
+content-hash = "48d6c130e1192866813b023b1dc7abf8ede535569527786aa0f98040fe484382"

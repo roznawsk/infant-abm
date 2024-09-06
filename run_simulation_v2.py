@@ -110,13 +110,11 @@ if __name__ == "__main__":
     model = Model_0_2_1()
     collector = v2Collector
 
-    iterations = 100_00
+    iterations = 50_000
     grid = 2
     repeats = 10
-    run_name = "test_q_learnv2_10k"
-    q_learn_params = list(
-        itertools.product(*[[0.08, 0.13], [0.5, 0.7, 0.8], [0.005, 0.01, 0.05]])
-    )
+    run_name = "test_q_learnv2_50k"
+    q_learn_params = list(itertools.product(*[[0.13], [0.5], [0.005]]))
 
     linspace = (0.3, 0.7, grid)
 

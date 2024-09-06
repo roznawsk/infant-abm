@@ -87,6 +87,7 @@ class Simulation:
         output_dir="results",
         display=False,
         processes=None,
+        chunksize=4,
     ):
         self.model = model
         self.parameter_sets: dict = model_param_sets
@@ -95,6 +96,7 @@ class Simulation:
         self.datacollector: DataCollector = datacollector
         self.display = display
         self.processes = processes
+        self.chunksize = chunksize
         self.base_dir = output_dir
 
         if run_name is None:
@@ -118,7 +120,9 @@ class Simulation:
         partial_results = dict()
 
         for index, repeat, result in tqdm.tqdm(
-            pool.imap(self._single_run_param_set, run_parameters, chunksize=4),
+            pool.imap(
+                self._single_run_param_set, run_parameters, chunksize=self.chunksize
+            ),
             total=len(run_parameters),
             disable=not self.display,
         ):

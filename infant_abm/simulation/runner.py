@@ -67,7 +67,7 @@ def run_comparative_boost_simulation(
             "infant_params": i_params,
         }
 
-        if q_learn_params is not None:
+        if q_lrn is not None:
             a, g, e = q_lrn
             kwargs = {"alpha": a, "gamma": g, "epsilon": e}
 
@@ -80,7 +80,7 @@ def run_comparative_boost_simulation(
         model=model,
         iterations=iterations,
         collector=collector,
-        parameter_sets=params,
+        parameter_sets=params_list,
         repeats=repeats,
     )
 

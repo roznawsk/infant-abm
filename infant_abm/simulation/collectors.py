@@ -16,7 +16,7 @@ class DataCollector(ABC):
         pass
 
 
-SUCCESS_DIST = 20000
+SUCCESS_DIST = 10
 
 
 class v1Collector(DataCollector):

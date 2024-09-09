@@ -99,8 +99,8 @@ class Simulation:
 
         run_parameters = [
             (index, repeat, params)
-            for repeat in range(self.repeats)
             for index, params in enumerate(self.parameter_sets)
+            for repeat in range(self.repeats)
         ]
 
         partial_results = dict()

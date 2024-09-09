@@ -17,7 +17,13 @@ PROCESSES = os.cpu_count() - 1 if is_mac else os.cpu_count()
 
 
 def run_basic_simulation(
-    model, run_name, collector, parameter_sets, iterations, repeats=100
+    model,
+    run_name,
+    collector,
+    parameter_sets,
+    iterations,
+    repeats,
+    chunksize,
 ):
     simulation = Simulation(
         model=model,
@@ -28,6 +34,7 @@ def run_basic_simulation(
         datacollector=collector,
         display=True,
         processes=PROCESSES,
+        chunksize=chunksize,
     )
 
     simulation.run()
@@ -44,6 +51,7 @@ def run_comparative_boost_simulation(
     linspace,
     boost_linspace=(0, 0, 1),
     q_learn_params=[None],
+    chunksize=10,
 ):
     perception, persistence, coordination = [
         np.round(np.linspace(*linspace), 3) for _ in range(3)
@@ -82,6 +90,7 @@ def run_comparative_boost_simulation(
         collector=collector,
         parameter_sets=params_list,
         repeats=repeats,
+        chunksize=chunksize,
     )
 
 

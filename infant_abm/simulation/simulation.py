@@ -73,7 +73,7 @@ class Simulation:
         output_dir="results",
         display=False,
         processes=None,
-        chunksize=4,
+        chunksize=10,
     ):
         self.model = model
         self.parameter_sets: dict = model_param_sets
@@ -110,6 +110,7 @@ class Simulation:
                 self._single_run_param_set, run_parameters, chunksize=self.chunksize
             ),
             total=len(run_parameters),
+            ncols=80,
             disable=not self.display,
         ):
             repeat = str(repeat)

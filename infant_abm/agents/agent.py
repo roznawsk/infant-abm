@@ -10,7 +10,7 @@ class Agent(mesa.Agent):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model)
 
-        self.pos = pos
+        self.pos: np.ndarray = pos
 
         # Direction of the agent ranging from 0 to +2π
         self.direction = np.random.uniform(0, 2 * np.pi)

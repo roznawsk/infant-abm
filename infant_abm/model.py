@@ -10,8 +10,11 @@ import mesa
 import numpy as np
 import warnings
 
-from infant_abm.agents import Toy, Position, Infant, Parent
 from infant_abm.agents.infant import Params as InfantParams
+from infant_abm.agents.infant import Infant
+from infant_abm.agents.toy import Toy
+from infant_abm.agents.position import Position
+from infant_abm.agents.parent import Parent
 from infant_abm.config import Config
 
 

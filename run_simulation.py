@@ -14,15 +14,15 @@ if __name__ == "__main__":
     model = Model_0_1_0()
     collector = v1CollectoTrails
 
-    grid = 2
+    grid = 3
     boost = 1
-    repeats = 3
-    iterations = 1_000
-    run_name = "test-trails-collector"
+    repeats = 10
+    iterations = 20_000
+    run_name = "trails-smol"
     q_learn_params = [[0.13, 0.5, 0.005]]
     q_learn_params = [None]
 
-    linspace = (0.05, 0.95, grid)
+    linspace = (0.2, 0.8, grid)
     boost_linspace = (0, 1, boost)
 
     run_comparative_boost_simulation(

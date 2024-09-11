@@ -39,7 +39,8 @@ class NoVisionInfant(Infant):
                 Position.calc_norm_vector(self.pos, self.model.parent.pos) * throw_range
             )
         else:
-            throw_direction = np.random.rand(2)
+            throw_angle = np.random.uniform(0, 2 * np.pi)
+            throw_direction = np.array([np.cos(throw_angle), np.sin(throw_angle)])
             throw_direction = (
                 throw_direction / np.linalg.norm(throw_direction) * self.TOY_THROW_RANGE
             )
